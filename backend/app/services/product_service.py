@@ -38,8 +38,8 @@ class ProductService:
     def create_product(data):
 
         name = data.get("name")
-        price = data.get("price")
-        quantity = data.get("quantity")
+        price = float(data.get("price"))
+        quantity = int(data.get("quantity"))
         category_id = data.get("category")
 
         if not all([name, price, quantity, category_id]):
@@ -53,6 +53,7 @@ class ProductService:
             name=name,
             price=float(price),
             quantity=int(quantity),
+            total_amount= price * quantity,
             category_id=int(category_id)
         )
 
@@ -75,8 +76,8 @@ class ProductService:
         product = Product.query.get_or_404(product_id)
 
         name = data.get("name")
-        price = data.get("price")
-        quantity = data.get("quantity")
+        price = float(data.get("price"))
+        quantity = int(data.get("quantity"))
         category_id = data.get("category")
 
         if not all([name, price, quantity, category_id]):
@@ -90,6 +91,9 @@ class ProductService:
         product.price = float(price)
         product.quantity = int(quantity)
         product.category_id = int(category_id)
+        product.total_amount = (
+            product.price * product.quantity
+        )
 
         db.session.commit()
 

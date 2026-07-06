@@ -25,11 +25,18 @@ def create_app():
     Migrate(app, db)
 
     # Register Blueprints
-    from app.routes import (
+    # from app.routes import (
+    #     auth_bp,
+    #     product_bp,
+    #     home_bp,
+    #     category_bp
+    # )
+    
+    from app.api.v1.routes import (
         auth_bp,
         product_bp,
-        home_bp,
-        category_bp
+        category_bp,
+        home_bp
     )
 
     app.register_blueprint(home_bp)

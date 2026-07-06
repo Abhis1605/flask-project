@@ -1,12 +1,33 @@
 from app.extensions import db
 
+
 class Product(db.Model):
+
     __tablename__ = "products"
 
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), nullable=False)
-    price = db.Column(db.Float)
-    quantity = db.Column(db.Integer)
+
+    name = db.Column(
+        db.String(100),
+        nullable=False
+    )
+
+    price = db.Column(
+        db.Numeric(10, 2),
+        nullable=False
+    )
+
+    quantity = db.Column(
+        db.Integer,
+        nullable=False,
+        default=0
+    )
+
+    total_amount = db.Column(
+        db.Numeric(12, 2),
+        nullable=False,
+        default=0
+    )
 
     category_id = db.Column(
         db.Integer,
@@ -18,7 +39,16 @@ class Product(db.Model):
         "Category",
         back_populates="products"
     )
-    
-    @property
-    def total_amount(self):
-        return self.price * self.quantity
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "price": float(self.price),
+            "quantity": self.quantity,
+            "total_amount": float(self.total_amount),
+            "category": {
+                "id": self.category.id,
+                "name": self.category.name
+            } if self.category else None,
+        }
