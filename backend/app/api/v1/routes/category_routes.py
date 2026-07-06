@@ -1,15 +1,13 @@
-from flask import (
-    Blueprint,
-    render_template,
-    request,
-    redirect,
-    url_for,
-    flash,
-)
+from flask import Blueprint, request
 
 from flask_login import login_required
 
 from app.services.category_service import CategoryService
+
+from app.utils.api_response import (
+    success_response,
+    error_response
+)
 
 category_bp = Blueprint(
     "category",
@@ -17,77 +15,138 @@ category_bp = Blueprint(
     url_prefix="/api/v1/categories"
 )
 
-@category_bp.route("/")
+# GET - get all categories
+# GET /api/v1/categories
+
+@category_bp.route("", methods=["GET"])
 @login_required
-def list_categories():
+def get_categories():
 
     categories = CategoryService.get_categories()
 
-    return render_template(
-        "categories/list.html",
-        categories=categories
+    return success_response(
+        data=[
+            category.to_dict()
+            for category in categories
+        ],
+        message="Categories fetched successfully."
     )
 
+# GET - get single category
+# GET /api/v1/categories/1
 
-@category_bp.route("/add", methods=["POST"])
+@category_bp.route("/<int:category_id>", methods=["GET"])
 @login_required
-def add_category():
+def get_category(category_id):
 
-    result = CategoryService.create_category(
-        request.form
-    )
-
-    flash(
-        result["message"],
-        "success" if result["success"] else "danger"
-    )
-
-    return redirect(
-        url_for("category.list_categories")
-    )
-
-@category_bp.route("/edit/<int:category_id>", methods=["GET", "POST"])
-@login_required
-def edit_category(category_id):
-
-    category = CategoryService.get_category(category_id)
-
-    if request.method == "POST":
-
-        result = CategoryService.update_category(
-            category_id,
-            request.form
-        )
-
-        flash(
-            result["message"],
-            "success" if result["success"] else "danger"
-        )
-
-        if result["success"]:
-
-            return redirect(
-                url_for("category.list_categories")
-            )
-
-    return render_template(
-        "categories/edit.html",
-        category=category
-    )
-
-@category_bp.route("/delete/<int:category_id>", methods=["POST"])
-@login_required
-def delete_category(category_id):
-
-    result = CategoryService.delete_category(
+    category = CategoryService.get_category(
         category_id
     )
 
-    flash(
-        result["message"],
-        "success" if result["success"] else "danger"
+    if not category:
+
+        return error_response(
+            message="Category not found.",
+            status_code=404
+        )
+
+    return success_response(
+        data=category.to_dict(),
+        message="Category fetched successfully."
     )
 
-    return redirect(
-        url_for("category.list_categories")
+# POST - create category
+# POST /api/v1/categories
+
+@category_bp.route("", methods=["POST"])
+@login_required
+def create_category():
+
+    try:
+
+        category = CategoryService.create_category(
+            request.get_json()
+        )
+
+        return success_response(
+            data=category.to_dict(),
+            message="Category created successfully.",
+            status_code=201
+        )
+
+    except ValueError as e:
+
+        return error_response(
+            message=str(e),
+            status_code=400
+        )
+
+    except Exception:
+
+        return error_response(
+            message="Something went wrong.",
+            status_code=500
+        )
+
+# PUT - update category
+# PUT /api/v1/categories/1
+
+@category_bp.route("/<int:category_id>", methods=["PUT"])
+@login_required
+def update_category(category_id):
+
+    try:
+
+        category = CategoryService.update_category(
+            category_id,
+            request.get_json()
+        )
+
+        if not category:
+
+            return error_response(
+                message="Category not found.",
+                status_code=404
+            )
+
+        return success_response(
+            data=category.to_dict(),
+            message="Category updated successfully."
+        )
+
+    except ValueError as e:
+
+        return error_response(
+            message=str(e),
+            status_code=400
+        )
+
+    except Exception:
+
+        return error_response(
+            message="Something went wrong.",
+            status_code=500
+        )
+
+
+# DELETE - delete individual category
+# DELETE /api/v1/categories/:id
+
+@category_bp.route("/<int:category_id>", methods=["DELETE"])
+@login_required
+def delete_category(category_id):
+
+    deleted = CategoryService.delete_category(
+        category_id
+    )
+
+    if not deleted:
+
+        return error_response(
+            message="Category not found.",
+            status_code=404
+        )
+
+    return success_response(
+        message="Category deleted successfully."
     )

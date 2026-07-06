@@ -8,15 +8,22 @@ class ProductService:
 
     @staticmethod
     def get_categories():
-        return Category.query.order_by(Category.name).all()
+        return Category.query.order_by(Category.name.asc()).all()
 
     @staticmethod
-    def get_products(search="", category_id=""):
+    def get_products(
+        search="",
+        category_id=None,
+        page=1,
+        per_page=10,
+        sort="id",
+        order="desc",
+    ):
 
         query = Product.query
 
+        # Search
         if search:
-
             normalized_search = search.replace(" ", "").lower()
 
             query = query.filter(
@@ -27,91 +34,167 @@ class ProductService:
                 ).like(f"%{normalized_search}%")
             )
 
+        # Category Filter
         if category_id:
             query = query.filter(
                 Product.category_id == int(category_id)
             )
 
-        return query.order_by(Product.id.asc()).all()
+        # Sorting
+        sort_columns = {
+            "id": Product.id,
+            "name": Product.name,
+            "price": Product.price,
+            "quantity": Product.quantity,
+            "total_amount": Product.total_amount,
+        }
+
+        sort_column = sort_columns.get(sort, Product.id)
+
+        if order.lower() == "asc":
+            query = query.order_by(sort_column.asc())
+        else:
+            query = query.order_by(sort_column.desc())
+
+        return query.paginate(
+            page=page,
+            per_page=per_page,
+            error_out=False
+        )
+
+    @staticmethod
+    def get_product(product_id):
+
+        return Product.query.get(product_id)
 
     @staticmethod
     def create_product(data):
 
-        name = data.get("name")
-        price = float(data.get("price"))
-        quantity = int(data.get("quantity"))
-        category_id = data.get("category")
+        name = data.get("name", "").strip()
 
-        if not all([name, price, quantity, category_id]):
+        price = float(data.get("price", 0))
 
-            return {
-                "success": False,
-                "message": "All fields are required."
-            }
+        quantity = int(data.get("quantity", 0))
 
-        product = Product(
-            name=name,
-            price=float(price),
-            quantity=int(quantity),
-            total_amount= price * quantity,
-            category_id=int(category_id)
-        )
+        category_id = int(data.get("category"))
 
-        db.session.add(product)
-        db.session.commit()
+        if not name:
+            raise ValueError("Product name is required.")
 
-        return {
-            "success": True,
-            "message": "Product added successfully."
-        }
-        
-    @staticmethod
-    def get_product(product_id):
+        if price <= 0:
+            raise ValueError("Price must be greater than 0.")
 
-        return Product.query.get_or_404(product_id)
-    
+        if quantity < 0:
+            raise ValueError("Quantity cannot be negative.")
+
+        category = Category.query.get(category_id)
+
+        if not category:
+            raise ValueError("Category not found.")
+
+        exists = Product.query.filter(
+            func.lower(Product.name) == name.lower()
+        ).first()
+
+        if exists:
+            raise ValueError("Product already exists.")
+
+        try:
+
+            product = Product(
+                name=name,
+                price=price,
+                quantity=quantity,
+                total_amount=price * quantity,
+                category_id=category_id,
+            )
+
+            db.session.add(product)
+
+            db.session.commit()
+
+            return product
+
+        except Exception:
+
+            db.session.rollback()
+
+            raise
+
     @staticmethod
     def update_product(product_id, data):
 
-        product = Product.query.get_or_404(product_id)
+        product = Product.query.get(product_id)
 
-        name = data.get("name")
-        price = float(data.get("price"))
-        quantity = int(data.get("quantity"))
-        category_id = data.get("category")
+        if not product:
+            return None
 
-        if not all([name, price, quantity, category_id]):
+        name = data.get("name", "").strip()
 
-            return {
-                "success": False,
-                "message": "All fields are required."
-            }
+        price = float(data.get("price", 0))
 
-        product.name = name
-        product.price = float(price)
-        product.quantity = int(quantity)
-        product.category_id = int(category_id)
-        product.total_amount = (
-            product.price * product.quantity
-        )
+        quantity = int(data.get("quantity", 0))
 
-        db.session.commit()
+        category_id = int(data.get("category"))
 
-        return {
-            "success": True,
-            "message": "Product updated successfully."
-        }
-        
+        if not name:
+            raise ValueError("Product name is required.")
+
+        if price <= 0:
+            raise ValueError("Price must be greater than 0.")
+
+        if quantity < 0:
+            raise ValueError("Quantity cannot be negative.")
+
+        category = Category.query.get(category_id)
+
+        if not category:
+            raise ValueError("Category not found.")
+
+        duplicate = Product.query.filter(
+            func.lower(Product.name) == name.lower(),
+            Product.id != product.id
+        ).first()
+
+        if duplicate:
+            raise ValueError("Product already exists.")
+
+        try:
+
+            product.name = name
+            product.price = price
+            product.quantity = quantity
+            product.category_id = category_id
+            product.total_amount = price * quantity
+
+            db.session.commit()
+
+            return product
+
+        except Exception:
+
+            db.session.rollback()
+
+            raise
+
     @staticmethod
     def delete_product(product_id):
 
-        product = Product.query.get_or_404(product_id)
+        product = Product.query.get(product_id)
 
-        db.session.delete(product)
+        if not product:
+            return None
 
-        db.session.commit()
+        try:
 
-        return {
-        "success": True,
-        "message": "Product deleted successfully."
-        }
+            db.session.delete(product)
+
+            db.session.commit()
+
+            return True
+
+        except Exception:
+
+            db.session.rollback()
+
+            raise

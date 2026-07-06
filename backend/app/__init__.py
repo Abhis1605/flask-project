@@ -1,5 +1,6 @@
 from flask import Flask
 from flask_migrate import Migrate
+from flask_cors import CORS
 
 from app.config import Config
 from app.extensions import db, login_manager
@@ -8,6 +9,13 @@ from app.extensions import db, login_manager
 def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
+    
+    # Enable CORS
+    CORS(
+        app,
+        supports_credentials=True,
+        origins=["http://localhost:3000"]
+    )
 
     # Initialize Extensions
     db.init_app(app)

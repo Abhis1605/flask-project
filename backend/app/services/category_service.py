@@ -6,11 +6,15 @@ class CategoryService:
 
     @staticmethod
     def get_categories():
-        return Category.query.order_by(Category.name.asc()).all()
+
+        return Category.query.order_by(
+            Category.name.asc()
+        ).all()
 
     @staticmethod
     def get_category(category_id):
-        return Category.query.get_or_404(category_id)
+
+        return Category.query.get(category_id)
 
     @staticmethod
     def create_category(data):
@@ -18,61 +22,94 @@ class CategoryService:
         name = data.get("name", "").strip()
 
         if not name:
-            return {
-                "success": False,
-                "message": "Category name is required."
-            }
+            raise ValueError(
+                "Category name is required."
+            )
 
-        exists = Category.query.filter_by(name=name).first()
+        exists = Category.query.filter_by(
+            name=name
+        ).first()
 
         if exists:
-            return {
-                "success": False,
-                "message": "Category already exists."
-            }
+            raise ValueError(
+                "Category already exists."
+            )
 
-        category = Category(name=name)
+        try:
 
-        db.session.add(category)
-        db.session.commit()
+            category = Category(
+                name=name
+            )
 
-        return {
-            "success": True,
-            "message": "Category created successfully."
-        }
+            db.session.add(category)
+
+            db.session.commit()
+
+            return category
+
+        except Exception:
+
+            db.session.rollback()
+
+            raise
 
     @staticmethod
     def update_category(category_id, data):
 
-        category = Category.query.get_or_404(category_id)
+        category = Category.query.get(category_id)
+
+        if not category:
+            return None
 
         name = data.get("name", "").strip()
 
         if not name:
-            return {
-                "success": False,
-                "message": "Category name is required."
-            }
+            raise ValueError(
+                "Category name is required."
+            )
 
-        category.name = name
+        duplicate = Category.query.filter(
+            Category.name == name,
+            Category.id != category.id
+        ).first()
 
-        db.session.commit()
+        if duplicate:
+            raise ValueError(
+                "Category already exists."
+            )
 
-        return {
-            "success": True,
-            "message": "Category updated successfully."
-        }
+        try:
+
+            category.name = name
+
+            db.session.commit()
+
+            return category
+
+        except Exception:
+
+            db.session.rollback()
+
+            raise
 
     @staticmethod
     def delete_category(category_id):
 
-        category = Category.query.get_or_404(category_id)
+        category = Category.query.get(category_id)
 
-        db.session.delete(category)
+        if not category:
+            return None
 
-        db.session.commit()
+        try:
 
-        return {
-            "success": True,
-            "message": "Category deleted successfully."
-        }
+            db.session.delete(category)
+
+            db.session.commit()
+
+            return True
+
+        except Exception:
+
+            db.session.rollback()
+
+            raise
