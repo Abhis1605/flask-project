@@ -9,7 +9,7 @@ import type {
 
 export const AuthService = {
   login: (data: LoginRequest) =>
-    api.post<ApiResponse<{ user: User }>, LoginRequest>(
+    api.post<ApiResponse<User>, LoginRequest>(
       "/auth/login",
       data
     ),
@@ -21,7 +21,7 @@ export const AuthService = {
     ),
 
   me: () =>
-    api.get<ApiResponse<{ user: User }>>(
+    api.get<ApiResponse<User>>(
       "/auth/me"
     ),
 

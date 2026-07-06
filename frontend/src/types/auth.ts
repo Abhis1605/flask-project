@@ -19,10 +19,6 @@ export interface RegisterRequest {
   password: string;
 }
 
-export interface AuthResponse {
-  user: User;
-}
-
 export interface ApiResponse<T> {
   success: boolean;
   message: string;

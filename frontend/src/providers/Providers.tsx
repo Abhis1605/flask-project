@@ -1,6 +1,6 @@
 "use client";
 
-import { ReactNode, useState } from "react";
+import { ReactNode, useEffect, useState } from "react";
 
 import {
   QueryClientProvider,
@@ -13,9 +13,20 @@ import {
 } from "@tanstack/react-query-devtools";
 
 import { queryClient } from "@/lib/query/queryClient";
+import { useThemeStore } from "@/store/theme.store";
 
 interface ProvidersProps {
   children: ReactNode;
+}
+
+function ThemeInitializer() {
+  const theme = useThemeStore((state) => state.theme);
+
+  useEffect(() => {
+    document.documentElement.classList.toggle("dark", theme === "dark");
+  }, [theme]);
+
+  return null;
 }
 
 export default function Providers({
@@ -26,6 +37,8 @@ export default function Providers({
 
   return (
     <QueryClientProvider client={client}>
+
+      <ThemeInitializer />
 
       {children}
 

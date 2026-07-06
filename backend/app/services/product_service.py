@@ -14,6 +14,8 @@ class ProductService:
     def get_products(
         search="",
         category_id=None,
+        min_price=None,
+        max_price=None,
         page=1,
         per_page=10,
         sort="id",
@@ -39,6 +41,13 @@ class ProductService:
             query = query.filter(
                 Product.category_id == int(category_id)
             )
+
+        # Price range filter
+        if min_price is not None:
+            query = query.filter(Product.price >= min_price)
+
+        if max_price is not None:
+            query = query.filter(Product.price <= max_price)
 
         # Sorting
         sort_columns = {

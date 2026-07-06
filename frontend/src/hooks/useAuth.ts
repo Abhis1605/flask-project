@@ -7,7 +7,6 @@ import { useAuthStore } from "@/store/auth.store";
 import type {
   LoginRequest,
   RegisterRequest,
-  User,
 } from "@/types/auth";
 
 export function useLogin() {
@@ -20,7 +19,7 @@ export function useLogin() {
       AuthService.login(data),
 
     onSuccess: (response) => {
-      setUser(response.data.user);
+      setUser(response.data);
 
       router.push("/dashboard");
     },
@@ -41,10 +40,19 @@ export function useRegister() {
 }
 
 export function useCurrentUser() {
-  return useQuery<User>({
+  const setUser = useAuthStore((state) => state.setUser);
+
+  const query = useQuery({
     queryKey: ["current-user"],
-    queryFn: () => AuthService.me(),
+    queryFn: async () => {
+      const response = await AuthService.me();
+      setUser(response.data);
+      return response.data;
+    },
+    retry: false,
   });
+
+  return query;
 }
 
 export function useLogout() {
