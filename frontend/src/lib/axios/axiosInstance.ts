@@ -9,5 +9,3 @@ export const axiosInstance = axios.create({
   },
   timeout: 15000,
 });
-
-import "./interceptors";
