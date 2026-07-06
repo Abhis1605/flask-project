@@ -1,5 +1,5 @@
 import { QueryClient } from '@tanstack/react-query';
-// import { toast } from '@/components/ui/toast'; 
+import { toast } from 'sonner';
 import { ApiError } from '@/lib/errors/ApiError';
 
 export function queryClient() {
@@ -13,7 +13,7 @@ export function queryClient() {
       mutations: {
         onError: (error) => {
           const message = error instanceof ApiError ? error.message : 'Request failed';
-        //   toast.error(message);
+          toast.error(message);
         },
       },
     },

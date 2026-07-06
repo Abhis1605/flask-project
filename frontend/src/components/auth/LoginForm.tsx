@@ -1,9 +1,9 @@
 "use client";
 
+import Link from "next/link";
+
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-
-
 
 import { useLogin } from "@/hooks/useAuth";
 
@@ -91,12 +91,12 @@ export default function LoginForm() {
 
         <div className="mt-6 text-center text-sm text-slate-500">
           Don't have an account?{" "}
-          <a
+          <Link
             href="/register"
             className="font-semibold text-slate-700 hover:underline"
           >
             Register
-          </a>
+          </Link>
         </div>
       </Card>
     </div>

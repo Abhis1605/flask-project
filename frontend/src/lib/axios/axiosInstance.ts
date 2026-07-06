@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { env } from '@/config/env';
+import { attachInterceptors } from './interceptors';
 
 export const axiosInstance = axios.create({
   baseURL: env.apiBaseUrl,
@@ -9,3 +10,5 @@ export const axiosInstance = axios.create({
   },
   timeout: 15000,
 });
+
+attachInterceptors(axiosInstance);
