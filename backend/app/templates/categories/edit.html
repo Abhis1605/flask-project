@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block title %}
+Edit Category
+{% endblock %}
+
+{% block content %}
+
+<div class="card">
+
+    <h2>Edit Category</h2>
+
+    <form method="POST">
+
+        <input
+            type="text"
+            name="name"
+            class="form-control"
+            value="{{ category.name }}"
+            required
+        >
+
+        <button
+            class="btn btn-primary mt-3"
+        >
+            Update Category
+        </button>
+
+        <a
+            href="{{ url_for('category.list_categories') }}"
+            class="btn btn-secondary mt-3"
+        >
+            Cancel
+        </a>
+
+    </form>
+
+</div>
+
+{% endblock %}

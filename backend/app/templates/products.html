@@ -1,0 +1,269 @@
+{% extends "base.html" %}
+
+{% block title %}
+Products
+{% endblock %}
+
+{% block content %}
+
+<div class="card shadow-sm p-4 mb-4">
+
+    <h3 class="mb-4">
+        Add Product
+    </h3>
+
+    <form
+        method="POST"
+        action="{{ url_for('product.add_product') }}"
+    >
+
+        <div class="row">
+
+            <div class="col-md-3">
+
+                <input
+                    type="text"
+                    name="name"
+                    class="form-control"
+                    placeholder="Product Name"
+                    required
+                >
+
+            </div>
+
+            <div class="col-md-2">
+
+                <input
+                    type="number"
+                    step="0.01"
+                    name="price"
+                    class="form-control"
+                    placeholder="Price"
+                    required
+                >
+
+            </div>
+
+            <div class="col-md-2">
+
+                <input
+                    type="number"
+                    name="quantity"
+                    class="form-control"
+                    placeholder="Quantity"
+                    required
+                >
+
+            </div>
+
+            <div class="col-md-3">
+
+                <select
+                    name="category"
+                    class="form-select"
+                    required
+                >
+
+                    <option value="">
+                        Select Category
+                    </option>
+
+                    {% for category in categories %}
+
+                    <option value="{{ category.id }}">
+                        {{ category.name }}
+                    </option>
+
+                    {% endfor %}
+
+                </select>
+
+            </div>
+
+            <div class="col-md-2">
+
+                <button
+                    class="btn btn-primary w-100"
+                    type="submit"
+                >
+                    Add
+                </button>
+
+            </div>
+
+        </div>
+
+    </form>
+
+</div>
+
+
+<div class="card shadow-sm p-4">
+
+    <h3 class="mb-4">
+        Products
+    </h3>
+
+    <form
+        id="searchForm"
+        method="GET"
+        action="{{ url_for('product.list_products') }}"
+        class="row g-3 mb-4"
+    >
+
+        <div class="col-md-6">
+
+            <input
+                id="search"
+                type="text"
+                name="search"
+                class="form-control"
+                placeholder="Search Product..."
+                value="{{ search }}"
+            >
+
+        </div>
+
+        <div class="col-md-4">
+
+            <select
+                name="category"
+                class="form-select"
+            >
+
+                <option value="">
+                    All Categories
+                </option>
+
+                {% for category in categories %}
+
+                <option
+                    value="{{ category.id }}"
+                    {% if selected_category|string == category.id|string %}
+                        selected
+                    {% endif %}
+                >
+                    {{ category.name }}
+                </option>
+
+                {% endfor %}
+
+            </select>
+
+        </div>
+
+        <div class="col-md-2">
+
+            <button
+                class="btn btn-success w-100"
+                type="submit"
+            >
+                Search
+            </button>
+
+        </div>
+
+    </form>
+
+    <table class="table table-bordered table-hover align-middle">
+
+        <thead class="table-dark">
+
+            <tr>
+
+                <th>ID</th>
+
+                <th>Name</th>
+
+                <th>Category</th>
+
+                <th>Price</th>
+
+                <th>Quantity</th>
+
+                <th>Total Amount</th>
+
+                <th width="170">
+                    Actions
+                </th>
+
+            </tr>
+
+        </thead>
+
+        <tbody>
+
+            {% if products %}
+
+                {% for product in products %}
+
+                <tr>
+
+                    <td>{{ product.id }}</td>
+
+                    <td>{{ product.name }}</td>
+
+                    <td>{{ product.category.name }}</td>
+
+                    <td>₹ {{ "%.2f"|format(product.price) }}</td>
+
+                    <td>{{ product.quantity }}</td>
+
+                    <td>
+
+                        ₹ {{ "%.2f"|format(product.total_amount) }}
+
+                    </td>
+
+                    <td>
+
+                        <a
+                            href="{{ url_for('product.edit_product', product_id=product.id) }}"
+                            class="btn btn-warning btn-sm"
+                        >
+                            <i class="bi bi-pencil-square"></i>
+                        </a>
+
+                        <form
+                            action="{{ url_for('product.delete_product', product_id=product.id) }}"
+                            method="POST"
+                            class="d-inline"
+                        >
+
+                            <button
+                                class="btn btn-danger btn-sm"
+                                onclick="return confirm('Delete this product?')"
+                            >
+                                <i class="bi bi-trash"></i>
+                            </button>
+
+                        </form>
+
+                    </td>
+
+                </tr>
+
+                {% endfor %}
+
+            {% else %}
+
+                <tr>
+
+                    <td
+                        colspan="7"
+                        class="text-center"
+                    >
+                        No Products Found
+                    </td>
+
+                </tr>
+
+            {% endif %}
+
+        </tbody>
+
+    </table>
+
+</div>
+
+{% endblock %}

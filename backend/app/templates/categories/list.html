@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% block title %}
+Categories
+{% endblock %}
+
+{% block content %}
+
+<div class="card">
+
+    <h2>Categories</h2>
+
+    <table class="table">
+
+        <thead>
+
+            <tr>
+
+                <th>ID</th>
+
+                <th>Name</th>
+
+                <th>Actions</th>
+
+            </tr>
+
+        </thead>
+
+        <tbody>
+
+            {% for category in categories %}
+
+            <tr>
+
+                <td>{{ category.id }}</td>
+
+                <td>{{ category.name }}</td>
+
+                <td>
+
+                    <a
+                        href="{{ url_for('category.edit_category', category_id=category.id) }}"
+                        class="btn btn-warning btn-sm"
+                    >
+                        <i class="bi bi-pencil-square"></i>
+                    </a>
+
+                    <form
+                        action="{{ url_for('category.delete_category', category_id=category.id) }}"
+                        method="POST"
+                        class="d-inline"
+                    >
+
+                        <button
+                            class="btn btn-danger btn-sm"
+                            onclick="return confirm('Delete this category?')"
+                        >
+                            <i class="bi bi-trash"></i>
+                        </button>
+
+                    </form>
+
+                </td>
+
+            </tr>
+
+            {% endfor %}
+
+        </tbody>
+
+    </table>
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+
+{% block title %}
+Edit Product
+{% endblock %}
+
+{% block content %}
+
+<div class="container mt-5">
+
+    <h2>Edit Product</h2>
+
+    <form method="POST">
+
+        <div class="mb-3">
+
+            <label>Name</label>
+
+            <input
+                type="text"
+                class="form-control"
+                name="name"
+                value="{{ product.name }}"
+                required
+            >
+
+        </div>
+
+        <div class="mb-3">
+
+            <label>Price</label>
+
+            <input
+                type="number"
+                class="form-control"
+                step="0.01"
+                name="price"
+                value="{{ product.price }}"
+                required
+            >
+
+        </div>
+
+        <div class="mb-3">
+
+            <label>Quantity</label>
+
+            <input
+                type="number"
+                class="form-control"
+                name="quantity"
+                value="{{ product.quantity }}"
+                required
+            >
+
+        </div>
+
+        <div class="mb-3">
+
+            <label>Category</label>
+
+            <select
+                class="form-select"
+                name="category"
+                required
+            >
+
+                {% for category in categories %}
+
+                <option
+                    value="{{ category.id }}"
+                    {% if category.id == product.category_id %}
+                        selected
+                    {% endif %}
+                >
+                    {{ category.name }}
+                </option>
+
+                {% endfor %}
+
+            </select>
+
+        </div>
+
+        <button
+            class="btn btn-primary"
+            type="submit"
+        >
+            Update Product
+        </button>
+
+        <a
+            href="{{ url_for('product.list_products') }}"
+            class="btn btn-secondary"
+        >
+            Cancel
+        </a>
+
+    </form>
+
+</div>
+
+{% endblock %}
