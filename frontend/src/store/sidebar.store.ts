@@ -6,6 +6,12 @@ interface SidebarState {
   toggleSidebar: () => void;
 
   setCollapsed: (collapsed: boolean) => void;
+
+  mobileOpen: boolean;
+
+  toggleMobileSidebar: () => void;
+
+  closeMobileSidebar: () => void;
 }
 
 export const useSidebarStore = create<SidebarState>((set) => ({
@@ -15,4 +21,11 @@ export const useSidebarStore = create<SidebarState>((set) => ({
     set((state) => ({ collapsed: !state.collapsed })),
 
   setCollapsed: (collapsed) => set({ collapsed }),
+
+  mobileOpen: false,
+
+  toggleMobileSidebar: () =>
+    set((state) => ({ mobileOpen: !state.mobileOpen })),
+
+  closeMobileSidebar: () => set({ mobileOpen: false }),
 }));

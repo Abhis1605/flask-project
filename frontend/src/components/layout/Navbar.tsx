@@ -1,17 +1,22 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { Moon, Sun } from "lucide-react";
+import { Menu, Moon, Sun, X } from "lucide-react";
 
 import Button from "@/components/ui/Button";
 import { useThemeStore } from "@/store/theme.store";
+import { useSidebarStore } from "@/store/sidebar.store";
+import { useMobile } from "@/hooks/useMobile";
 import UserMenu from "./UserMenu";
 import { NAV_ITEMS } from "./nav-items";
 
 export default function Navbar() {
   const pathname = usePathname();
+  const isMobile = useMobile();
   const theme = useThemeStore((state) => state.theme);
   const toggleTheme = useThemeStore((state) => state.toggleTheme);
+  const mobileOpen = useSidebarStore((state) => state.mobileOpen);
+  const toggleMobileSidebar = useSidebarStore((state) => state.toggleMobileSidebar);
 
   const title =
     NAV_ITEMS.find(
@@ -19,10 +24,29 @@ export default function Navbar() {
     )?.label ?? "Dashboard";
 
   return (
-    <header className="sticky top-0 z-10 flex h-16 items-center justify-between gap-4 border-b border-slate-200 bg-white/80 px-4 backdrop-blur-sm sm:px-6 dark:border-slate-800 dark:bg-slate-900/80">
-      <h1 className="text-lg font-semibold text-slate-800 dark:text-slate-100">
-        {title}
-      </h1>
+    <header className="sticky top-0 z-20 flex h-16 items-center justify-between gap-4 border-b border-slate-200 bg-white/80 px-4 backdrop-blur-sm sm:px-6 dark:border-slate-800 dark:bg-slate-900/80">
+      <div className="flex items-center gap-3">
+        {isMobile && (
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={() => toggleMobileSidebar()}
+            className="!p-2.5"
+            aria-label={mobileOpen ? "Close menu" : "Open menu"}
+            title={mobileOpen ? "Close menu" : "Open menu"}
+          >
+            {mobileOpen ? (
+              <X className="h-5 w-5" />
+            ) : (
+              <Menu className="h-5 w-5" />
+            )}
+          </Button>
+        )}
+
+        <h1 className="text-lg font-semibold text-slate-800 dark:text-slate-100">
+          {title}
+        </h1>
+      </div>
 
       <div className="flex items-center gap-3">
         <Button
