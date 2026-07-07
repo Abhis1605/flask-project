@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -17,7 +18,16 @@ import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 
 export default function LoginForm() {
-  const login = useLogin();
+  const searchParams = useSearchParams();
+
+  const redirectParam = searchParams.get("redirect");
+  // Only ever follow a same-site relative path — never an absolute/external URL.
+  const redirectTo =
+    redirectParam && redirectParam.startsWith("/") && !redirectParam.startsWith("//")
+      ? redirectParam
+      : "/dashboard";
+
+  const login = useLogin(redirectTo);
 
   const [showPassword, setShowPassword] = useState(false)
 

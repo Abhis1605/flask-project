@@ -1,6 +1,6 @@
 from flask import Blueprint, request
 
-from flask_login import login_required
+from flask_jwt_extended import jwt_required
 
 from app.services.category_service import CategoryService
 
@@ -19,7 +19,7 @@ category_bp = Blueprint(
 # GET /api/v1/categories
 
 @category_bp.route("", methods=["GET"])
-@login_required
+@jwt_required(locations=["headers"])
 def get_categories():
 
     categories = CategoryService.get_categories()
@@ -36,7 +36,7 @@ def get_categories():
 # GET /api/v1/categories/1
 
 @category_bp.route("/<int:category_id>", methods=["GET"])
-@login_required
+@jwt_required(locations=["headers"])
 def get_category(category_id):
 
     category = CategoryService.get_category(
@@ -59,7 +59,7 @@ def get_category(category_id):
 # POST /api/v1/categories
 
 @category_bp.route("", methods=["POST"])
-@login_required
+@jwt_required(locations=["headers"])
 def create_category():
 
     try:
@@ -92,7 +92,7 @@ def create_category():
 # PUT /api/v1/categories/1
 
 @category_bp.route("/<int:category_id>", methods=["PUT"])
-@login_required
+@jwt_required(locations=["headers"])
 def update_category(category_id):
 
     try:
@@ -133,7 +133,7 @@ def update_category(category_id):
 # DELETE /api/v1/categories/:id
 
 @category_bp.route("/<int:category_id>", methods=["DELETE"])
-@login_required
+@jwt_required(locations=["headers"])
 def delete_category(category_id):
 
     deleted = CategoryService.delete_category(

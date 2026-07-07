@@ -9,19 +9,21 @@ import type {
   RegisterRequest,
 } from "@/types/auth";
 
-export function useLogin() {
+export function useLogin(redirectTo: string = "/dashboard") {
   const router = useRouter();
 
   const setUser = useAuthStore((state) => state.setUser);
+  const setAccessToken = useAuthStore((state) => state.setAccessToken);
 
   return useMutation({
     mutationFn: (data: LoginRequest) =>
       AuthService.login(data),
 
     onSuccess: (response) => {
-      setUser(response.data);
+      setAccessToken(response.data.access_token);
+      setUser(response.data.user);
 
-      router.push("/dashboard");
+      router.push(redirectTo);
     },
   });
 }
@@ -58,13 +60,13 @@ export function useCurrentUser() {
 export function useLogout() {
   const router = useRouter();
 
-  const clearUser = useAuthStore((state) => state.clearUser);
+  const clearAuth = useAuthStore((state) => state.clearAuth);
 
   return useMutation({
     mutationFn: () => AuthService.logout(),
 
     onSuccess: () => {
-      clearUser();
+      clearAuth();
 
       router.replace("/login");
     },

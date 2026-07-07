@@ -22,7 +22,10 @@ class AuthService:
             
         except ValidationError as e:
 
-            return False, str(e)
+            return {
+                "success": False,
+                "message": str(e)
+            }
         
         existing_user = User.query.filter_by(
             email = email
@@ -66,12 +69,19 @@ class AuthService:
             }
         
         if not verify_password(password, user.password_hash):
-            
+
             return {
                 "success": False,
-                "message": 'Your account has been disabled.'
+                "message": "Invalid email or password."
             }
-        
+
+        if not user.is_active:
+
+            return {
+                "success": False,
+                "message": "Your account has been disabled."
+            }
+
         return {
             "success": True,
             "message": "Login successful.",

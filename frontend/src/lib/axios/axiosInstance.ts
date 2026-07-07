@@ -4,7 +4,7 @@ import { attachInterceptors } from './interceptors';
 
 export const axiosInstance = axios.create({
   baseURL: env.apiBaseUrl,
-  withCredentials: true, // required — Flask-Login uses session cookies, not bearer tokens
+  withCredentials: true, // required — sends the httpOnly refresh_token cookie on /auth/refresh and /auth/logout
   headers: {
     'Content-Type': 'application/json',
   },

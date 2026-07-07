@@ -1,7 +1,7 @@
 from flask import Blueprint
 
-from flask_login import (
-    login_required,
+from flask_jwt_extended import (
+    jwt_required,
     current_user
 )
 
@@ -16,7 +16,7 @@ home_bp = Blueprint(
 )
 
 @home_bp.route("", methods=["GET"])
-@login_required
+@jwt_required(locations=["headers"])
 def dashboard():
     
     dashboard = HomeService.get_dashboard(

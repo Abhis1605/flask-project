@@ -19,6 +19,15 @@ export interface RegisterRequest {
   password: string;
 }
 
+export interface LoginResponseData {
+  user: User;
+  access_token: string;
+}
+
+export interface RefreshResponseData {
+  access_token: string;
+}
+
 export interface ApiResponse<T> {
   success: boolean;
   message: string;

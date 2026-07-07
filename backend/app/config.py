@@ -22,26 +22,40 @@ class Config:
 
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
-    # Prevent JavaScript from accessing the session cookie
-    SESSION_COOKIE_HTTPONLY = True
+    FLASK_ENV = os.getenv("FLASK_ENV", "development")
+    IS_PRODUCTION = FLASK_ENV == "production"
 
-    # Protect against many CSRF attacks
-    SESSION_COOKIE_SAMESITE = "Lax"
+    # --- JWT ---
+    # Access tokens are short-lived and sent only via the Authorization
+    # header (never persisted client-side beyond memory).
+    # Refresh tokens are long-lived and delivered as an httpOnly cookie
+    # scoped to the auth blueprint so JS can never read them directly.
+    JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY") or SECRET_KEY
 
-    # False for local development.
-    # Change to True after deploying with HTTPS.
-    SESSION_COOKIE_SECURE = False
+    JWT_ACCESS_TOKEN_EXPIRES = timedelta(
+        minutes=int(os.getenv("JWT_ACCESS_TOKEN_EXPIRES_MIN", 15))
+    )
+    JWT_REFRESH_TOKEN_EXPIRES = timedelta(
+        days=int(os.getenv("JWT_REFRESH_TOKEN_EXPIRES_DAYS", 7))
+    )
 
-    # Expire inactive sessions after 30 minutes
-    PERMANENT_SESSION_LIFETIME = timedelta(minutes=30)
+    JWT_TOKEN_LOCATION = ["headers", "cookies"]
+    JWT_HEADER_NAME = "Authorization"
+    JWT_HEADER_TYPE = "Bearer"
 
-    # Remember Me cookie duration
-    REMEMBER_COOKIE_DURATION = timedelta(days=7)
+    JWT_REFRESH_COOKIE_NAME = "refresh_token"
+    JWT_REFRESH_COOKIE_PATH = "/api/v1/auth"
+    JWT_COOKIE_DOMAIN = os.getenv("JWT_COOKIE_DOMAIN") or None
 
-    # Additional Flask-Login settings
-    REMEMBER_COOKIE_HTTPONLY = True
-    REMEMBER_COOKIE_SECURE = False      # True in production
-    REMEMBER_COOKIE_SAMESITE = "Lax"
+    # False for local development. Change to True after deploying with HTTPS.
+    JWT_COOKIE_SECURE = IS_PRODUCTION
+    JWT_COOKIE_SAMESITE = os.getenv("JWT_COOKIE_SAMESITE", "Lax")
 
-    # Refresh session lifetime on each request
-    SESSION_REFRESH_EACH_REQUEST = True
+    # Refresh cookie is protected against CSRF via a double-submit token
+    # (readable, non-httpOnly `csrf_refresh_token` cookie) that the
+    # frontend must echo back in the X-CSRF-TOKEN header.
+    JWT_COOKIE_CSRF_PROTECT = True
+    JWT_ACCESS_CSRF_HEADER_NAME = "X-CSRF-TOKEN"
+    JWT_REFRESH_CSRF_HEADER_NAME = "X-CSRF-TOKEN"
+
+    JWT_ERROR_MESSAGE_KEY = "message"

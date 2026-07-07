@@ -3,31 +3,27 @@ from flask_migrate import Migrate
 from flask_cors import CORS
 
 from app.config import Config
-from app.extensions import db, login_manager
+from app.extensions import db, jwt
 
 
 def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
-    
+
     # Enable CORS
     CORS(
         app,
         supports_credentials=True,
-        origins=["http://localhost:3000"]
+        origins=["http://localhost:3000"],
+        allow_headers=["Content-Type", "Authorization", "X-CSRF-TOKEN"],
     )
 
     # Initialize Extensions
     db.init_app(app)
-    login_manager.init_app(app)
+    jwt.init_app(app)
 
     # Import Models
     from app.models import User, Product, Category
-
-    # Flask-Login User Loader
-    @login_manager.user_loader
-    def load_user(user_id):
-        return User.query.get(int(user_id))
 
     # Initialize Migrations
     Migrate(app, db)

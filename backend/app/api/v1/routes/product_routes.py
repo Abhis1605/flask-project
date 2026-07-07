@@ -1,6 +1,6 @@
 from flask import Blueprint, request
 
-from flask_login import login_required
+from flask_jwt_extended import jwt_required
 
 from app.services.product_service import ProductService
 from app.utils.api_response import (
@@ -17,7 +17,7 @@ product_bp = Blueprint(
 # GET all products
 
 @product_bp.route("", methods=["GET"])
-@login_required
+@jwt_required(locations=["headers"])
 def get_products():
     
     search = request.args.get('search', "").strip()
@@ -68,7 +68,7 @@ def get_products():
 # GET single product
 
 @product_bp.route("/<int:product_id>", methods=["GET"])
-@login_required
+@jwt_required(locations=["headers"])
 def get_product(product_id):
 
     product = ProductService.get_product(product_id)
@@ -87,7 +87,7 @@ def get_product(product_id):
 # POST - create product
 
 @product_bp.route("", methods=["POST"])
-@login_required
+@jwt_required(locations=["headers"])
 def create_product():
 
     try:
@@ -119,7 +119,7 @@ def create_product():
 # PUT - update product
 
 @product_bp.route("/<int:product_id>", methods=["PUT"])
-@login_required
+@jwt_required(locations=["headers"])
 def update_product(product_id):
 
     try:
@@ -158,7 +158,7 @@ def update_product(product_id):
 # DELETE - delete product
 
 @product_bp.route("/<int:product_id>", methods=["DELETE"])
-@login_required
+@jwt_required(locations=["headers"])
 def delete_product(product_id):
 
     deleted = ProductService.delete_product(product_id)
@@ -175,7 +175,7 @@ def delete_product(product_id):
     )
 
 @product_bp.route("/categories", methods=["GET"])
-@login_required
+@jwt_required(locations=["headers"])
 def get_categories():
 
     categories = ProductService.get_categories()
