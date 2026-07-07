@@ -21,6 +21,7 @@ interface ProvidersProps {
 
 function ThemeInitializer() {
   const theme = useThemeStore((state) => state.theme);
+  const setResolvedTheme = useThemeStore((state) => state.setResolvedTheme);
 
   useEffect(() => {
     const root = document.documentElement;
@@ -28,11 +29,10 @@ function ThemeInitializer() {
     const media = window.matchMedia("(prefers-color-scheme: dark)");
 
     const applyTheme = () => {
-      if (theme === "system") {
-        root.classList.toggle("dark", media.matches);
-      } else {
-        root.classList.toggle("dark", theme === "dark");
-      }
+      const isDark = theme === "system" ? media.matches : theme === "dark";
+
+      root.classList.toggle("dark", isDark);
+      setResolvedTheme(isDark ? "dark" : "light");
     };
 
     applyTheme();
@@ -44,7 +44,7 @@ function ThemeInitializer() {
         media.removeEventListener("change", applyTheme);
       };
     }
-  }, [theme]);
+  }, [theme, setResolvedTheme]);
 
   return null;
 }
@@ -65,7 +65,7 @@ export default function Providers({
       <Toaster position="top-right"
         richColors
         closeButton
-        duration={300}
+        duration={3000}
        />
 
       <ReactQueryDevtools

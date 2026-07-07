@@ -7,6 +7,10 @@ interface ThemeState {
   theme: Theme;
 
   setTheme: (theme: Theme) => void;
+
+  resolvedTheme: "light" | "dark";
+
+  setResolvedTheme: (resolvedTheme: "light" | "dark") => void;
 }
 
 export const useThemeStore = create<ThemeState>()(
@@ -15,9 +19,14 @@ export const useThemeStore = create<ThemeState>()(
       theme: "system",
 
       setTheme: (theme) => set({ theme }),
+
+      resolvedTheme: "light",
+
+      setResolvedTheme: (resolvedTheme) => set({ resolvedTheme }),
     }),
     {
       name: "theme-storage",
+      partialize: (state) => ({ theme: state.theme }),
     }
   )
 );

@@ -13,8 +13,8 @@ import { NAV_ITEMS } from "./nav-items";
 export default function Navbar() {
   const pathname = usePathname();
   const isMobile = useMobile();
-  const theme = useThemeStore((state) => state.theme);
-  const setTheme  = useThemeStore((state) => state.setTheme)
+  const resolvedTheme = useThemeStore((state) => state.resolvedTheme);
+  const setTheme = useThemeStore((state) => state.setTheme);
   const mobileOpen = useSidebarStore((state) => state.mobileOpen);
   const toggleMobileSidebar = useSidebarStore((state) => state.toggleMobileSidebar);
 
@@ -30,9 +30,7 @@ export default function Navbar() {
           <Button
             type="button"
             variant="ghost"
-            onClick={() => 
-              setTheme
-            }
+            onClick={toggleMobileSidebar}
             className="p-2.5!"
             aria-label={mobileOpen ? "Close menu" : "Open menu"}
             title={mobileOpen ? "Close menu" : "Open menu"}
@@ -54,13 +52,13 @@ export default function Navbar() {
         <Button
           type="button"
           variant="ghost"
-          onClick={() => 
-            setTheme(theme === "dark" ? "light" : "dark")
+          onClick={() =>
+            setTheme(resolvedTheme === "dark" ? "light" : "dark")
           }
           className="p-2.5! cursor-pointer"
-          title={theme === "light" ? "Switch to dark mode" : "Switch to light mode"}
+          title={resolvedTheme === "light" ? "Switch to dark mode" : "Switch to light mode"}
         >
-          {theme === "light" ? (
+          {resolvedTheme === "light" ? (
             <Moon className="h-5 w-5" />
           ) : (
             <Sun className="h-5 w-5" />
