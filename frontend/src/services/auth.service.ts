@@ -39,6 +39,8 @@ export const AuthService = {
 
   logout: () =>
     api.post<ApiResponse<null>>(
-      "/auth/logout"
+      "/auth/logout",
+      undefined,
+      { headers: { "X-CSRF-TOKEN": getCookie("csrf_refresh_token") ?? "" } }
     ),
 };

@@ -46,6 +46,13 @@ def revoked_token_callback(_jwt_header, _jwt_data):
     )
 
 
+@jwt.token_in_blocklist_loader
+def check_if_token_revoked(_jwt_header, jwt_data):
+    from app.services.token_service import TokenService
+
+    return TokenService.is_token_revoked(jwt_data)
+
+
 @jwt.needs_fresh_token_loader
 def needs_fresh_token_callback(_jwt_header, _jwt_data):
     return error_response(

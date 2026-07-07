@@ -3,13 +3,16 @@ from flask import Blueprint, request
 from flask_jwt_extended import (
     create_access_token,
     create_refresh_token,
+    get_jwt,
     set_refresh_cookies,
     unset_jwt_cookies,
+    verify_jwt_in_request,
     jwt_required,
     current_user,
 )
 
 from app.services.auth_service import AuthService
+from app.services.token_service import TokenService
 
 from app.utils.api_response import (
     success_response,
@@ -33,6 +36,31 @@ def _issue_access_token(user):
             "role": user.role,
         },
     )
+
+
+def _issue_refresh_token(user):
+    """Builds a long-lived refresh token carrying identity claims."""
+
+    return create_refresh_token(
+        identity=str(user.id),
+        additional_claims={
+            "email": user.email,
+            "role": user.role,
+        },
+    )
+
+
+def _get_optional_jwt_claims(refresh=False, locations=None):
+    try:
+        verify_jwt_in_request(
+            refresh=refresh,
+            optional=True,
+            locations=locations
+        )
+
+        return get_jwt() or None
+    except Exception:
+        return None
 
 
 @auth_bp.route("/register", methods=["POST"])
@@ -72,13 +100,7 @@ def login():
 
     access_token = _issue_access_token(user)
 
-    refresh_token = create_refresh_token(
-        identity=str(user.id),
-        additional_claims={
-            "email": user.email,
-            "role": user.role,
-        },
-    )
+    refresh_token = _issue_refresh_token(user)
 
     response, status_code = success_response(
         data={
@@ -104,12 +126,26 @@ def refresh():
             status_code=401
         )
 
-    access_token = _issue_access_token(current_user)
+    old_refresh_claims = get_jwt()
 
-    return success_response(
+    access_token = _issue_access_token(current_user)
+    refresh_token = _issue_refresh_token(current_user)
+
+    TokenService.revoke_token(
+        old_refresh_claims,
+        reason="rotated"
+    )
+
+    response, status_code = success_response(
         data={"access_token": access_token},
         message="Token refreshed successfully.",
     )
+
+    # Refresh-token rotation: the just-used refresh token is now revoked,
+    # and the browser receives a replacement httpOnly refresh cookie.
+    set_refresh_cookies(response, refresh_token)
+
+    return response, status_code
 
 
 @auth_bp.route("/me", methods=["GET"])
@@ -124,6 +160,27 @@ def me():
 
 @auth_bp.route("/logout", methods=["POST"])
 def logout():
+
+    access_claims = _get_optional_jwt_claims(
+        locations=["headers"]
+    )
+
+    refresh_claims = _get_optional_jwt_claims(
+        refresh=True,
+        locations=["cookies"]
+    )
+
+    if access_claims:
+        TokenService.revoke_token(
+            access_claims,
+            reason="logout"
+        )
+
+    if refresh_claims:
+        TokenService.revoke_token(
+            refresh_claims,
+            reason="logout"
+        )
 
     response, status_code = success_response(
         message="Logout successful."
