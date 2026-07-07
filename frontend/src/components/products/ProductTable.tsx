@@ -149,7 +149,7 @@ export default function ProductTable({
                       type="button"
                       onClick={() => onEdit(product)}
                       aria-label="Edit product"
-                      className="rounded-lg p-2 text-slate-400 transition-colors hover:bg-slate-100 hover:text-indigo-600 dark:hover:bg-slate-800"
+                      className="rounded-lg p-2 cursor-pointer text-slate-400 transition-colors hover:bg-slate-100 hover:text-indigo-600 dark:hover:bg-slate-800"
                     >
                       <Pencil className="h-4 w-4" />
                     </button>
@@ -160,7 +160,7 @@ export default function ProductTable({
                       type="button"
                       onClick={() => onDelete(product)}
                       aria-label="Delete product"
-                      className="rounded-lg p-2 text-slate-400 transition-colors hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-500/10"
+                      className="rounded-lg p-2 cursor-pointer text-slate-400 transition-colors hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-500/10"
                     >
                       <Trash2 className="h-4 w-4" />
                     </button>

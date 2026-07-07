@@ -5,6 +5,7 @@ import { Package, Tags } from "lucide-react";
 import { useDashboard } from "@/hooks/useDashboard";
 import StatCard from "@/components/dashboard/StatCard";
 import Spinner from "@/components/ui/Spinner";
+import Link from "next/link";
 
 export default function DashboardPage() {
   const { data, isLoading } = useDashboard();
@@ -29,17 +30,21 @@ export default function DashboardPage() {
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <StatCard
+        <Link href={"/products"}>
+          <StatCard
           label="Total Products"
           value={data?.stats.total_products ?? 0}
           icon={Package}
         />
+        </Link>
 
-        <StatCard
+        <Link href={"/categories"}>
+          <StatCard
           label="Total Categories"
           value={data?.stats.total_categories ?? 0}
           icon={Tags}
         />
+        </Link>
       </div>
     </div>
   );

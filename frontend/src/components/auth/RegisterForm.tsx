@@ -13,10 +13,14 @@ import { useRegister } from "@/hooks/useAuth";
 import Card from "../ui/Card";
 import Label from "../ui/Label";
 import Input from "../ui/Input";
+import { useRef, useState } from "react";
+import { Eye, EyeOff } from "lucide-react";
 
 export default function RegisterForm() {
   const registerMutation = useRegister();
 
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const {
     register,
     handleSubmit,
@@ -25,10 +29,7 @@ export default function RegisterForm() {
     resolver: zodResolver(registerSchema),
   });
 
-  const onSubmit = ({
-    confirmPassword,
-    ...data
-  }: RegisterSchema) => {
+  const onSubmit = ({ confirmPassword, ...data }: RegisterSchema) => {
     registerMutation.mutate(data);
   };
 
@@ -36,19 +37,12 @@ export default function RegisterForm() {
     <div className="flex min-h-screen items-center justify-center bg-slate-100 px-4">
       <Card className="w-full max-w-md p-8">
         <div className="mb-8 text-center">
-          <h1 className="text-3xl font-bold text-slate-600">
-            Create Account
-          </h1>
+          <h1 className="text-3xl font-bold text-slate-600">Create Account</h1>
 
-          <p className="mt-2 text-sm text-slate-500">
-            Register to continue
-          </p>
+          <p className="mt-2 text-sm text-slate-500">Register to continue</p>
         </div>
 
-        <form
-          onSubmit={handleSubmit(onSubmit)}
-          className="space-y-5"
-        >
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
           <div>
             <Label>Full Name</Label>
 
@@ -85,12 +79,26 @@ export default function RegisterForm() {
           <div>
             <Label>Password</Label>
 
-            <Input
-              type="password"
-              placeholder="Enter your password"
-              error={!!errors.password}
-              {...register("password")}
-            />
+            <div className="relative">
+              <Input
+                type={showPassword ? "text" : "password"}
+                placeholder="Enter your password"
+                error={!!errors.password}
+                {...register("password")}
+              />
+
+              <button
+                type="button"
+                onClick={() => setShowPassword((prev) => !prev)}
+                className="absolute cursor-pointer right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700"
+              >
+                {showPassword ? 
+                  <EyeOff className="h-5 w-5" />
+                 :
+                  <Eye className="h-5 w-5" />
+                }
+              </button>
+            </div>
 
             {errors.password && (
               <p className="mt-1 text-sm text-red-500">
@@ -102,12 +110,24 @@ export default function RegisterForm() {
           <div>
             <Label>Confirm Password</Label>
 
-            <Input
-              type="password"
+            <div className="relative">
+              <Input
+              type={ showConfirmPassword ? "text" : "password"}
               placeholder="Confirm your password"
               error={!!errors.confirmPassword}
               {...register("confirmPassword")}
             />
+
+            <button
+              type="button"
+              onClick={() => setShowConfirmPassword((prev) => !prev)}
+                className="absolute cursor-pointer right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700"
+            >
+              {
+                showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" /> 
+              }
+            </button>
+            </div>
 
             {errors.confirmPassword && (
               <p className="mt-1 text-sm text-red-500">
@@ -125,11 +145,11 @@ export default function RegisterForm() {
           </Button>
         </form>
 
-        <div className="mt-6 text-center text-sm text-slate-600">
+        <div className="mt-6 text-center text-sm text-slate-500">
           Already have an account?{" "}
           <Link
             href="/login"
-            className="font-semibold text-slate-900 hover:underline"
+            className="font-semibold text-slate-700 hover:underline"
           >
             Login
           </Link>

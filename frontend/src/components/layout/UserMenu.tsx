@@ -29,11 +29,11 @@ export default function UserMenu() {
   if (!user) return null;
 
   return (
-    <div className="relative" ref={menuRef}>
+    <div className="relative cursor-pointer" ref={menuRef}>
       <button
         type="button"
         onClick={() => setOpen((prev) => !prev)}
-        className="flex items-center gap-2 rounded-lg px-2 py-1.5 transition-colors hover:bg-slate-100 dark:hover:bg-slate-800"
+        className="flex items-center gap-2 cursor-pointer rounded-lg px-2 py-1.5 transition-colors hover:bg-slate-100 dark:hover:bg-slate-800"
       >
         <Avatar name={user.full_name} />
 
@@ -65,7 +65,7 @@ export default function UserMenu() {
             type="button"
             onClick={() => logout.mutate()}
             disabled={logout.isPending}
-            className="flex w-full items-center gap-2 px-4 py-2.5 text-sm font-medium text-red-600 transition-colors hover:bg-red-50 disabled:opacity-60 dark:text-red-400 dark:hover:bg-red-500/10"
+            className="flex w-full items-center gap-2 cursor-pointer px-4 py-2.5 text-sm font-medium text-red-600 transition-colors hover:bg-red-50 disabled:opacity-60 dark:text-red-400 dark:hover:bg-red-500/10"
           >
             <LogOut className="h-4 w-4" />
             Logout

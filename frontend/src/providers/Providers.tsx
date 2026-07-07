@@ -23,7 +23,27 @@ function ThemeInitializer() {
   const theme = useThemeStore((state) => state.theme);
 
   useEffect(() => {
-    document.documentElement.classList.toggle("dark", theme === "dark");
+    const root = document.documentElement;
+
+    const media = window.matchMedia("(prefers-color-scheme: dark)");
+
+    const applyTheme = () => {
+      if (theme === "system") {
+        root.classList.toggle("dark", media.matches);
+      } else {
+        root.classList.toggle("dark", theme === "dark");
+      }
+    };
+
+    applyTheme();
+
+    if (theme === "system") {
+      media.addEventListener("change", applyTheme);
+
+      return () => {
+        media.removeEventListener("change", applyTheme);
+      };
+    }
   }, [theme]);
 
   return null;

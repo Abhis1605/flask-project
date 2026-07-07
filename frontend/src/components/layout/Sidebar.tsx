@@ -6,7 +6,6 @@ import { usePathname } from "next/navigation";
 import { Boxes, ChevronLeft, ChevronRight, LogOut, X } from "lucide-react";
 import clsx from "clsx";
 
-import Tooltip from "@/components/ui/Tooltip";
 import { useSidebarStore } from "@/store/sidebar.store";
 import { useLogout } from "@/hooks/useAuth";
 import { useMobile } from "@/hooks/useMobile";
@@ -86,17 +85,19 @@ export default function Sidebar() {
           )}
         </div>
 
-        <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4">
+        <nav className="flex-1 overflow-y-auto px-3 py-4">
           {NAV_ITEMS.map((item) => {
             const active =
               pathname === item.href || pathname?.startsWith(`${item.href}/`);
 
             const Icon = item.icon;
 
-            const link = (
+            return (
               <Link
+                key={item.href}
                 href={item.href}
                 onClick={handleNavClick}
+                title={isCollapsed ? item.label : undefined}
                 className={clsx(
                   "flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
                   isCollapsed && "justify-center",
@@ -110,14 +111,6 @@ export default function Sidebar() {
                 {!isCollapsed && <span className="truncate">{item.label}</span>}
               </Link>
             );
-
-            return isCollapsed ? (
-              <Tooltip key={item.href} label={item.label} side="right">
-                {link}
-              </Tooltip>
-            ) : (
-              <div key={item.href}>{link}</div>
-            );
           })}
         </nav>
 
@@ -128,7 +121,7 @@ export default function Sidebar() {
               onClick={() => toggleSidebar()}
               title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
               className={clsx(
-                "flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800",
+                "flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-600 transition-colors cursor-pointer hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800",
                 collapsed && "justify-center"
               )}
             >
@@ -143,29 +136,20 @@ export default function Sidebar() {
             </button>
           )}
 
-          {isCollapsed ? (
-            <Tooltip label="Logout" side="right">
-              <button
-                type="button"
-                onClick={() => logout.mutate()}
-                disabled={logout.isPending}
-                aria-label="Logout"
-                className="flex w-full items-center justify-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-red-600 transition-colors hover:bg-red-50 disabled:opacity-60 dark:text-red-400 dark:hover:bg-red-500/10"
-              >
-                <LogOut className="h-5 w-5 shrink-0" />
-              </button>
-            </Tooltip>
-          ) : (
-            <button
-              type="button"
-              onClick={() => logout.mutate()}
-              disabled={logout.isPending}
-              className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-red-600 transition-colors hover:bg-red-50 disabled:opacity-60 dark:text-red-400 dark:hover:bg-red-500/10"
-            >
-              <LogOut className="h-5 w-5 shrink-0" />
-              <span>Logout</span>
-            </button>
-          )}
+          <button
+            type="button"
+            onClick={() => logout.mutate()}
+            disabled={logout.isPending}
+            title={isCollapsed ? "Logout" : undefined}
+            className={clsx(
+              "flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-red-600 transition-colors cursor-pointer hover:bg-red-50 disabled:opacity-60 dark:text-red-400 dark:hover:bg-red-500/10",
+              isCollapsed && "justify-center"
+            )}
+          >
+            <LogOut className="h-5 w-5 shrink-0" />
+
+            {!isCollapsed && <span>Logout</span>}
+          </button>
         </div>
       </aside>
     </>
