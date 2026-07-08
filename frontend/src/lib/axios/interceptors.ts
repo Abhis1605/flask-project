@@ -38,7 +38,11 @@ function refreshAccessToken(instance: AxiosInstance): Promise<string | null> {
       })
       .catch(() => {
         useAuthStore.getState().clearAuth();
-        return null;
+        if (typeof window !== "undefined"){
+          window.location.href = "/login"
+        }
+        
+        return null
       })
       .finally(() => {
         refreshPromise = null;
@@ -77,6 +81,9 @@ export function attachInterceptors(instance: AxiosInstance) {
       const { status, data } = error.response;
       const originalRequest = error.config as RetryableConfig | undefined;
       const url = originalRequest?.url ?? "";
+      const isNoRefreshRetryEndpoint = NO_REFRESH_RETRY.some((route) =>
+        url.includes(route)
+      );
 
       const isPublicRoute =
         typeof window !== "undefined" &&
@@ -86,7 +93,7 @@ export function attachInterceptors(instance: AxiosInstance) {
         status === 401 &&
         !!originalRequest &&
         !originalRequest._retry &&
-        !NO_REFRESH_RETRY.some((route) => url.includes(route));
+        !isNoRefreshRetryEndpoint;
 
       if (shouldAttemptRefresh && originalRequest) {
         originalRequest._retry = true;
@@ -106,7 +113,12 @@ export function attachInterceptors(instance: AxiosInstance) {
 
         const isAuthCheck = url.includes("/auth/me");
 
-        if (!isAuthCheck && !isPublicRoute && typeof window !== "undefined") {
+        if (
+          !isAuthCheck &&
+          !isNoRefreshRetryEndpoint &&
+          !isPublicRoute &&
+          typeof window !== "undefined"
+        ) {
           window.location.href = "/login";
         }
       }

@@ -14,6 +14,7 @@ import {
 
 import { queryClient } from "@/lib/query/queryClient";
 import { useThemeStore } from "@/store/theme.store";
+import AuthProvider from "@/providers/AuthProvider";
 
 interface ProvidersProps {
   children: ReactNode;
@@ -60,7 +61,9 @@ export default function Providers({
 
       <ThemeInitializer />
 
-      {children}
+      <AuthProvider>
+        {children}
+      </AuthProvider>
 
       <Toaster position="top-right"
         richColors

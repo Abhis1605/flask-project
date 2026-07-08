@@ -5,8 +5,8 @@ import type { NextRequest } from "next/server";
 // session, so a signed-out user never even gets the protected page's
 // HTML/JS. It cannot validate the token's signature/expiry (that secret
 // lives only on the Flask backend) - real validation still happens
-// client-side via AuthGuard calling /auth/me, and on every API call via
-// the backend's @jwt_required checks.
+// client-side via AuthProvider refreshing and then calling /auth/me, and on
+// every API call via the backend's @jwt_required checks.
 
 // We check `csrf_refresh_token` rather than the actual `refresh_token`:
 // the refresh token cookie is intentionally scoped to Path=/api/v1/auth

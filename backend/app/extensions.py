@@ -4,13 +4,8 @@ from flask_jwt_extended import JWTManager
 from app.utils.api_response import error_response
 
 db = SQLAlchemy()
-
 jwt = JWTManager()
 
-
-# --- JWT error handlers ---
-# Every branch below funnels through the project's standard
-# error_response() shape so the frontend always gets {success, message}.
 
 @jwt.unauthorized_loader
 def missing_token_callback(_reason):
@@ -29,8 +24,14 @@ def invalid_token_callback(_reason):
 
 
 @jwt.expired_token_loader
-def expired_token_callback(_jwt_header, jwt_data):
-    token_type = jwt_data.get("type", "token")
+def expired_token_callback(
+    _jwt_header,
+    jwt_data
+):
+    token_type = jwt_data.get(
+        "type",
+        "token"
+    )
 
     return error_response(
         message=f"Your {token_type} token has expired.",
@@ -38,35 +39,22 @@ def expired_token_callback(_jwt_header, jwt_data):
     )
 
 
-@jwt.revoked_token_loader
-def revoked_token_callback(_jwt_header, _jwt_data):
-    return error_response(
-        message="Token has been revoked.",
-        status_code=401
-    )
-
-
-@jwt.token_in_blocklist_loader
-def check_if_token_revoked(_jwt_header, jwt_data):
-    from app.services.token_service import TokenService
-
-    return TokenService.is_token_revoked(jwt_data)
-
-
 @jwt.needs_fresh_token_loader
-def needs_fresh_token_callback(_jwt_header, _jwt_data):
+def needs_fresh_token_callback(
+    _jwt_header,
+    _jwt_data
+):
     return error_response(
         message="A fresh login is required for this action.",
         status_code=401
     )
 
 
-# --- Identity <-> User resolution ---
-# Loads the User row for the token's identity so routes can use
-# `current_user` from flask_jwt_extended, mirroring the old Flask-Login API.
-
 @jwt.user_lookup_loader
-def user_lookup_callback(_jwt_header, jwt_data):
+def user_lookup_callback(
+    _jwt_header,
+    jwt_data
+):
     from app.models import User
 
     user_id = jwt_data.get("sub")
@@ -74,17 +62,18 @@ def user_lookup_callback(_jwt_header, jwt_data):
     if user_id is None:
         return None
 
-    user = User.query.get(int(user_id))
-
-    if not user or not user.is_active:
-        return None
-
-    return user
+    return User.query.get(int(user_id))
 
 
 @jwt.user_lookup_error_loader
-def user_lookup_error_callback(_jwt_header, _jwt_data):
+def user_lookup_error_callback(
+    _jwt_header,
+    _jwt_data
+):
     return error_response(
-        message="This account no longer exists or has been disabled.",
+        message=(
+            "This account no longer exists "
+            "or has been disabled."
+        ),
         status_code=401
     )

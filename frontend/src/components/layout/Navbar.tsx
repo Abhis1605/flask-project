@@ -31,7 +31,7 @@ export default function Navbar() {
             type="button"
             variant="ghost"
             onClick={toggleMobileSidebar}
-            className="p-2.5!"
+            className="p-2.5! cursor-pointer"
             aria-label={mobileOpen ? "Close menu" : "Open menu"}
             title={mobileOpen ? "Close menu" : "Open menu"}
           >

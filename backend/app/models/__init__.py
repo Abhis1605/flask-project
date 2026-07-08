@@ -1,4 +1,4 @@
 from .product import Product
 from .category import Category                  
 from .user import User
-from .token_blocklist import TokenBlocklist
+from .user_session import UserSession

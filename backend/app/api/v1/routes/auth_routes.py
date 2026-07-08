@@ -1,34 +1,41 @@
+from user_agents import parse
+
 from flask import Blueprint, request
 
 from flask_jwt_extended import (
     create_access_token,
-    create_refresh_token,
-    get_jwt,
-    set_refresh_cookies,
-    unset_jwt_cookies,
-    verify_jwt_in_request,
     jwt_required,
     current_user,
 )
 
-from app.services.auth_service import AuthService
-from app.services.token_service import TokenService
+from app.models import User
+
+from app.services.auth_service import (
+    AuthService,
+)
+
+from app.services.session_service import (
+    SessionService,
+)
+
+from app.utils.cookies import (
+    set_refresh_cookie,
+    clear_refresh_cookie,
+)
 
 from app.utils.api_response import (
     success_response,
-    error_response
+
+    error_response,
 )
 
 auth_bp = Blueprint(
     "auth",
     __name__,
-    url_prefix="/api/v1/auth"
+    url_prefix="/api/v1/auth",
 )
 
-
 def _issue_access_token(user):
-    """Builds a short-lived access token carrying identity claims."""
-
     return create_access_token(
         identity=str(user.id),
         additional_claims={
@@ -38,156 +45,259 @@ def _issue_access_token(user):
     )
 
 
-def _issue_refresh_token(user):
-    """Builds a long-lived refresh token carrying identity claims."""
-
-    return create_refresh_token(
-        identity=str(user.id),
-        additional_claims={
-            "email": user.email,
-            "role": user.role,
-        },
+def _validate_csrf():
+    csrf_cookie = request.cookies.get(
+        "csrf_refresh_token"
     )
 
+    csrf_header = request.headers.get(
+        "X-CSRF-TOKEN"
+    )
 
-def _get_optional_jwt_claims(refresh=False, locations=None):
-    try:
-        verify_jwt_in_request(
-            refresh=refresh,
-            optional=True,
-            locations=locations
-        )
+    if (
+        not csrf_cookie
+        or not csrf_header
+        or csrf_cookie != csrf_header
+    ):
+        return False
 
-        return get_jwt() or None
-    except Exception:
-        return None
+    return True
 
 
-@auth_bp.route("/register", methods=["POST"])
+@auth_bp.route(
+    "/register",
+    methods=["POST"]
+)
 def register():
 
-    data = request.get_json(silent=True) or {}
+    data = request.get_json(
+        silent=True
+    ) or {}
 
     result = AuthService.register(data)
 
     if not result["success"]:
-
         return error_response(
             message=result["message"],
-            status_code=400
+            status_code=400,
         )
 
     return success_response(
         message=result["message"],
-        status_code=201
+        status_code=201,
     )
 
 
-@auth_bp.route("/login", methods=["POST"])
+@auth_bp.route(
+    "/login",
+    methods=["POST"]
+)
 def login():
 
-    data = request.get_json(silent=True) or {}
+    data = request.get_json(
+        silent=True
+    ) or {}
 
     result = AuthService.login(data)
 
     if not result["success"]:
         return error_response(
             message=result["message"],
-            status_code=401
+            status_code=401,
         )
 
     user = result["user"]
 
-    access_token = _issue_access_token(user)
-
-    refresh_token = _issue_refresh_token(user)
-
-    response, status_code = success_response(
-        data={
-            "user": user.to_dict(),
-            "access_token": access_token,
-        },
-        message=result["message"],
+    access_token = (
+        _issue_access_token(user)
+    )
+    
+    ua = parse(
+        request.headers.get(
+            "User-Agent",
+            ""
+        )
+    )
+    
+    device_name = (
+        f"{ua.browser.family} "
+        f"on "
+        f"{ua.os.family}"
     )
 
-    # Refresh token never touches JS - httpOnly cookie, scoped to /auth only.
-    set_refresh_cookies(response, refresh_token)
+    (
+        refresh_token,
+        csrf_token,
+        _,
+    ) = SessionService.create_session(
+        user=user,
+        ip_address=request.remote_addr,
+        user_agent=request.headers.get(
+            "User-Agent"
+        ),
+        device_name=device_name
+    )
+
+    response, status_code = (
+        success_response(
+            data={
+                "user": user.to_dict(),
+                "access_token": access_token,
+            },
+            message=result["message"],
+        )
+    )
+
+    set_refresh_cookie(
+        response,
+        refresh_token,
+        csrf_token,
+    )
 
     return response, status_code
 
 
 @auth_bp.route("/refresh", methods=["POST"])
-@jwt_required(refresh=True, locations=["cookies"])
 def refresh():
+    print("Refresh endpoint hit")
 
-    if current_user is None:
+    if not _validate_csrf():
+        print("CSRF FAILED")
         return error_response(
-            message="This account no longer exists or has been disabled.",
-            status_code=401
+            message="CSRF validation failed.",
+            status_code=401,
         )
 
-    old_refresh_claims = get_jwt()
-
-    access_token = _issue_access_token(current_user)
-    refresh_token = _issue_refresh_token(current_user)
-
-    TokenService.revoke_token(
-        old_refresh_claims,
-        reason="rotated"
+    refresh_token = request.cookies.get(
+        "refresh_token"
     )
 
-    response, status_code = success_response(
-        data={"access_token": access_token},
-        message="Token refreshed successfully.",
+    print("REFRESH TOKEN:", refresh_token)
+
+    if not refresh_token:
+        print("NO REFRESH TOKEN")
+        return error_response(
+            message="Refresh token not found.",
+            status_code=401,
+        )
+
+    print("BEFORE FIND SESSION")
+
+    session = SessionService.find_session(
+        refresh_token
     )
 
-    # Refresh-token rotation: the just-used refresh token is now revoked,
-    # and the browser receives a replacement httpOnly refresh cookie.
-    set_refresh_cookies(response, refresh_token)
+    print("SESSION FOUND:", session)
+
+    if not SessionService.is_session_valid(
+        session
+    ):
+        print("SESSION INVALID")
+        return error_response(
+            message="Invalid refresh token.",
+            status_code=401,
+        )
+
+@auth_bp.route(
+    "/me",
+    methods=["GET"]
+)
+@jwt_required()
+def me():
+    return success_response(
+        data=current_user.to_dict(),
+        message=(
+            "Current user fetched "
+            "successfully."
+        ),
+    )
+
+
+@auth_bp.route(
+    "/logout",
+    methods=["POST"]
+)
+def logout():
+
+    if not _validate_csrf():
+        return error_response(
+            message="CSRF validation failed.",
+            status_code=401,
+        )
+
+    refresh_token = request.cookies.get(
+        "refresh_token"
+    )
+
+    response, status_code = (
+        success_response(
+            message="Logout successful."
+        )
+    )
+
+    clear_refresh_cookie(
+        response
+    )
+
+    if refresh_token:
+        SessionService.revoke_session(
+            refresh_token
+        )
 
     return response, status_code
 
 
-@auth_bp.route("/me", methods=["GET"])
-@jwt_required(locations=["headers"])
-def me():
+@auth_bp.route(
+    "/logout-all",
+    methods=["POST"]
+)
+def logout_all():
 
-    return success_response(
-        data=current_user.to_dict(),
-        message="Current user fetched successfully."
-    )
-
-
-@auth_bp.route("/logout", methods=["POST"])
-def logout():
-
-    access_claims = _get_optional_jwt_claims(
-        locations=["headers"]
-    )
-
-    refresh_claims = _get_optional_jwt_claims(
-        refresh=True,
-        locations=["cookies"]
-    )
-
-    if access_claims:
-        TokenService.revoke_token(
-            access_claims,
-            reason="logout"
+    if not _validate_csrf():
+        return error_response(
+            message="CSRF validation failed.",
+            status_code=401,
         )
 
-    if refresh_claims:
-        TokenService.revoke_token(
-            refresh_claims,
-            reason="logout"
-        )
-
-    response, status_code = success_response(
-        message="Logout successful."
+    refresh_token = request.cookies.get(
+        "refresh_token"
     )
 
-    # Idempotent: always clear the refresh cookie, regardless of whether
-    # the caller's access token is still valid.
-    unset_jwt_cookies(response)
+    if not refresh_token:
+        return error_response(
+            message="Refresh token not found.",
+            status_code=401,
+        )
+
+    session = (
+        SessionService.find_session(
+            refresh_token
+        )
+    )
+
+    if not SessionService.is_session_valid(
+        session
+    ):
+        return error_response(
+            message="Invalid refresh token.",
+            status_code=401,
+        )
+
+    SessionService.revoke_all_sessions(
+        session.user_id
+    )
+
+    response, status_code = (
+        success_response(
+            message=(
+                "Logged out from all "
+                "devices successfully."
+            )
+        )
+    )
+
+    clear_refresh_cookie(
+        response
+    )
 
     return response, status_code

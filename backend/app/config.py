@@ -36,26 +36,23 @@ class Config:
         minutes=int(os.getenv("JWT_ACCESS_TOKEN_EXPIRES_MIN", 15))
     )
     JWT_REFRESH_TOKEN_EXPIRES = timedelta(
-        days=int(os.getenv("JWT_REFRESH_TOKEN_EXPIRES_DAYS", 7))
-    )
+    minutes=2
+)
 
     JWT_TOKEN_LOCATION = ["headers", "cookies"]
     JWT_HEADER_NAME = "Authorization"
     JWT_HEADER_TYPE = "Bearer"
 
-    JWT_REFRESH_COOKIE_NAME = "refresh_token"
-    JWT_REFRESH_COOKIE_PATH = "/api/v1/auth"
     JWT_COOKIE_DOMAIN = os.getenv("JWT_COOKIE_DOMAIN") or None
 
     # False for local development. Change to True after deploying with HTTPS.
     JWT_COOKIE_SECURE = IS_PRODUCTION
     JWT_COOKIE_SAMESITE = os.getenv("JWT_COOKIE_SAMESITE", "Lax")
 
-    # Refresh cookie is protected against CSRF via a double-submit token
-    # (readable, non-httpOnly `csrf_refresh_token` cookie) that the
-    # frontend must echo back in the X-CSRF-TOKEN header.
-    JWT_COOKIE_CSRF_PROTECT = True
-    JWT_ACCESS_CSRF_HEADER_NAME = "X-CSRF-TOKEN"
-    JWT_REFRESH_CSRF_HEADER_NAME = "X-CSRF-TOKEN"
-
     JWT_ERROR_MESSAGE_KEY = "message"
+    
+    
+    REFRESH_COOKIE_NAME = 'refresh_token'
+    REFRESH_COOKIE_PATH = "/api/v1/auth"
+    REFRESH_COOKIE_SECURE= IS_PRODUCTION
+    REFRESH_COOKIE_SAMESITE = 'Lax'

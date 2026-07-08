@@ -1,4 +1,4 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 
 import { AuthService } from "@/services/auth.service";
@@ -41,22 +41,6 @@ export function useRegister() {
   });
 }
 
-export function useCurrentUser() {
-  const setUser = useAuthStore((state) => state.setUser);
-
-  const query = useQuery({
-    queryKey: ["current-user"],
-    queryFn: async () => {
-      const response = await AuthService.me();
-      setUser(response.data);
-      return response.data;
-    },
-    retry: false,
-  });
-
-  return query;
-}
-
 export function useLogout() {
   const router = useRouter();
 
@@ -68,6 +52,24 @@ export function useLogout() {
     onSuccess: () => {
       clearAuth();
 
+      router.replace("/login");
+    },
+  });
+}
+
+export function useLogoutAll() {
+  const router = useRouter();
+
+  const clearAuth = useAuthStore(
+    (state) => state.clearAuth
+  );
+
+  return useMutation({
+    mutationFn: () =>
+      AuthService.logoutAll(),
+
+    onSuccess: () => {
+      clearAuth();
       router.replace("/login");
     },
   });
