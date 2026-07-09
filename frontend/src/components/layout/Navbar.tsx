@@ -1,10 +1,11 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
+import { useTheme } from "next-themes";
 import { Menu, Moon, Sun, X } from "lucide-react";
 
 import Button from "@/components/ui/Button";
-import { useThemeStore } from "@/store/theme.store";
 import { useSidebarStore } from "@/store/sidebar.store";
 import { useMobile } from "@/hooks/useMobile";
 import UserMenu from "./UserMenu";
@@ -13,10 +14,14 @@ import { NAV_ITEMS } from "./nav-items";
 export default function Navbar() {
   const pathname = usePathname();
   const isMobile = useMobile();
-  const resolvedTheme = useThemeStore((state) => state.resolvedTheme);
-  const setTheme = useThemeStore((state) => state.setTheme);
+  const { resolvedTheme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
   const mobileOpen = useSidebarStore((state) => state.mobileOpen);
   const toggleMobileSidebar = useSidebarStore((state) => state.toggleMobileSidebar);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const title =
     NAV_ITEMS.find(
@@ -58,7 +63,9 @@ export default function Navbar() {
           className="p-2.5! cursor-pointer"
           title={resolvedTheme === "light" ? "Switch to dark mode" : "Switch to light mode"}
         >
-          {resolvedTheme === "light" ? (
+          {!mounted ? (
+            <span className="h-5 w-5" />
+          ) : resolvedTheme === "light" ? (
             <Moon className="h-5 w-5" />
           ) : (
             <Sun className="h-5 w-5" />
