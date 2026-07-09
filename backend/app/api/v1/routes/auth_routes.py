@@ -27,7 +27,6 @@ from app.utils.cookies import (
 
 from app.utils.api_response import (
     success_response,
-
     error_response,
 )
 
@@ -77,7 +76,6 @@ def register():
     ) or {}
 
     result = AuthService.register(data)
-
     if not result["success"]:
         return error_response(
             message=result["message"],

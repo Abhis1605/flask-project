@@ -36,8 +36,8 @@ class Config:
         minutes=int(os.getenv("JWT_ACCESS_TOKEN_EXPIRES_MIN", 15))
     )
     JWT_REFRESH_TOKEN_EXPIRES = timedelta(
-    minutes=2
-)
+        days=int(os.getenv("JWT_REFRESH_TOKEN_EXPIRES_DAYS", 7))
+    )
 
     JWT_TOKEN_LOCATION = ["headers", "cookies"]
     JWT_HEADER_NAME = "Authorization"
