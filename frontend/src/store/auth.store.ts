@@ -14,11 +14,18 @@ interface AuthState {
 
   isInitialized: boolean;
 
+  // Set while an explicit logout is in flight, so AuthGuard can tell
+  // "user chose to log out" apart from "session expired underneath them"
+  // and skip its own session_expired redirect.
+  isLoggingOut: boolean;
+
   setUser: (user: User) => void;
 
   setAccessToken: (accessToken: string) => void;
 
   setAuthInitialized: (isInitialized: boolean) => void;
+
+  setLoggingOut: (isLoggingOut: boolean) => void;
 
   clearAuth: () => void;
 }
@@ -31,6 +38,8 @@ export const useAuthStore = create<AuthState>((set) => ({
   isAuthenticated: false,
 
   isInitialized: false,
+
+  isLoggingOut: false,
 
   setUser: (user) =>
     set({
@@ -48,10 +57,16 @@ export const useAuthStore = create<AuthState>((set) => ({
       isInitialized,
     }),
 
+  setLoggingOut: (isLoggingOut) =>
+    set({
+      isLoggingOut,
+    }),
+
   clearAuth: () =>
     set({
       user: null,
       accessToken: null,
       isAuthenticated: false,
+      isLoggingOut: false,
     }),
 }));

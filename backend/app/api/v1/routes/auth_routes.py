@@ -21,6 +21,8 @@ from app.services.session_service import (
 from app.utils.cookies import (
     set_refresh_cookie,
     clear_refresh_cookie,
+    set_had_session_marker,
+    clear_had_session_marker,
 )
 
 from app.utils.api_response import (
@@ -154,6 +156,10 @@ def login():
         csrf_token,
     )
 
+    set_had_session_marker(
+        response
+    )
+
     return response, status_code
 
 
@@ -162,7 +168,6 @@ def refresh():
     print("Refresh endpoint hit")
 
     if not _validate_csrf():
-        print("CSRF FAILED")
         return error_response(
             message="CSRF validation failed.",
             status_code=401,
@@ -172,32 +177,67 @@ def refresh():
         "refresh_token"
     )
 
-    print("REFRESH TOKEN:", refresh_token)
-
     if not refresh_token:
-        print("NO REFRESH TOKEN")
         return error_response(
             message="Refresh token not found.",
             status_code=401,
         )
 
-    print("BEFORE FIND SESSION")
-
     session = SessionService.find_session(
         refresh_token
     )
 
-    print("SESSION FOUND:", session)
-
     if not SessionService.is_session_valid(
         session
     ):
-        print("SESSION INVALID")
         return error_response(
             message="Invalid refresh token.",
             status_code=401,
         )
 
+    csrf_cookie = request.cookies.get(
+        "csrf_refresh_token"
+    )
+
+    if session.csrf_token != csrf_cookie:
+        return error_response(
+            message="Invalid CSRF token.",
+            status_code=401,
+        )
+
+    user = User.query.get(
+        session.user_id
+    )
+
+    if not user or not user.is_active:
+        return error_response(
+            message=(
+                "This account no longer exists "
+                "or has been disabled."
+            ),
+            status_code=401,
+        )
+
+    session.ip_address = request.remote_addr
+    session.user_agent = request.headers.get(
+        "User-Agent"
+    )
+
+    SessionService.touch_session(
+        session
+    )
+
+    access_token = _issue_access_token(
+        user
+    )
+
+    return success_response(
+        data={
+            "access_token": access_token
+        },
+        message="Token refreshed successfully.",
+    )
+    
 @auth_bp.route(
     "/me",
     methods=["GET"]
@@ -236,6 +276,10 @@ def logout():
     )
 
     clear_refresh_cookie(
+        response
+    )
+
+    clear_had_session_marker(
         response
     )
 
@@ -297,6 +341,10 @@ def logout_all():
     )
 
     clear_refresh_cookie(
+        response
+    )
+
+    clear_had_session_marker(
         response
     )
 

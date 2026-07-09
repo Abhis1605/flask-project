@@ -17,11 +17,24 @@ interface RetryableConfig extends InternalAxiosRequestConfig {
 
 // Requests to these endpoints must never trigger a refresh-and-retry -
 // a 401 here means "not logged in", not "access token expired".
-const NO_REFRESH_RETRY = ["/auth/refresh", "/auth/login", "/auth/register"];
+const NO_REFRESH_RETRY = [
+  "/auth/refresh",
+  "/auth/login",
+  "/auth/register",
+  "/auth/logout",
+];
 const PUBLIC_ROUTES = ["/login", "/register"];
 
 // Coalesces concurrent 401s into a single in-flight refresh call.
 let refreshPromise: Promise<string | null> | null = null;
+
+// A hard redirect here always means the user was mid-session when the
+// backend rejected the token, so it's always "expired", never "never
+// logged in".
+function buildSessionExpiredLoginUrl(): string {
+  const redirect = window.location.pathname + window.location.search;
+  return `/login?redirect=${encodeURIComponent(redirect)}&reason=session_expired`;
+}
 
 function refreshAccessToken(instance: AxiosInstance): Promise<string | null> {
   if (!refreshPromise) {
@@ -37,11 +50,18 @@ function refreshAccessToken(instance: AxiosInstance): Promise<string | null> {
         return token;
       })
       .catch(() => {
+        // An explicit logout in flight can race a concurrent request's
+        // 401 into this same failed-refresh path. useLogout already owns
+        // navigating to a plain /login in that case, so don't stomp on
+        // it with a session_expired redirect.
+        const wasLoggingOut = useAuthStore.getState().isLoggingOut;
+
         useAuthStore.getState().clearAuth();
-        if (typeof window !== "undefined"){
-          window.location.href = "/login"
+
+        if (typeof window !== "undefined" && !wasLoggingOut) {
+          window.location.href = buildSessionExpiredLoginUrl();
         }
-        
+
         return null
       })
       .finally(() => {
@@ -109,6 +129,8 @@ export function attachInterceptors(instance: AxiosInstance) {
       }
 
       if (status === 401) {
+        const wasLoggingOut = useAuthStore.getState().isLoggingOut;
+
         useAuthStore.getState().clearAuth();
 
         const isAuthCheck = url.includes("/auth/me");
@@ -117,9 +139,10 @@ export function attachInterceptors(instance: AxiosInstance) {
           !isAuthCheck &&
           !isNoRefreshRetryEndpoint &&
           !isPublicRoute &&
+          !wasLoggingOut &&
           typeof window !== "undefined"
         ) {
-          window.location.href = "/login";
+          window.location.href = buildSessionExpiredLoginUrl();
         }
       }
 

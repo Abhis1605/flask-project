@@ -15,7 +15,28 @@ import Input from "../ui/Input";
 import Button from "../ui/Button";
 import { loginSchema } from "@/schemas/login.schema";
 import { useState } from "react";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, AlertTriangle, Clock } from "lucide-react";
+
+const AUTH_NOTICES = {
+  login_required: {
+    icon: AlertTriangle,
+    message: "You have to login to access this route.",
+    className:
+      "border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-300",
+  },
+  session_expired: {
+    icon: Clock,
+    message: "Sorry, your session has expired. Please login first and then you can access that route.",
+    className:
+      "border-red-200 bg-red-50 text-red-800 dark:border-red-900 dark:bg-red-950 dark:text-red-300",
+  },
+} as const;
+
+type AuthNoticeReason = keyof typeof AUTH_NOTICES;
+
+function isAuthNoticeReason(value: string | null): value is AuthNoticeReason {
+  return value === "login_required" || value === "session_expired";
+}
 
 export default function LoginForm() {
   const searchParams = useSearchParams();
@@ -28,6 +49,9 @@ export default function LoginForm() {
       : "/dashboard";
 
   const login = useLogin(redirectTo);
+
+  const reasonParam = searchParams.get("reason");
+  const authNotice = isAuthNoticeReason(reasonParam) ? AUTH_NOTICES[reasonParam] : null;
 
   const [showPassword, setShowPassword] = useState(false)
 
@@ -46,6 +70,16 @@ export default function LoginForm() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-slate-100 px-4">
       <Card className="w-full max-w-md">
+        {authNotice && (
+          <div
+            role="alert"
+            className={`mb-6 flex items-start gap-2 rounded-lg border px-4 py-3 text-sm ${authNotice.className}`}
+          >
+            <authNotice.icon className="mt-0.5 h-4 w-4 shrink-0" />
+            <span>{authNotice.message}</span>
+          </div>
+        )}
+
         <div className="mb-8 text-center">
           <h1 className="text-3xl font-bold text-slate-600">
             Welcome Back

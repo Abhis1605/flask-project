@@ -17,6 +17,14 @@ import type { NextRequest } from "next/server";
 // safe, path-independent proxy for "a refresh token was issued".
 const SESSION_HINT_COOKIE_NAME = "csrf_refresh_token";
 
+// `csrf_refresh_token` shares the refresh token's short lifetime, so the
+// browser deletes it the instant the refresh token expires - by itself it
+// can't tell "session just expired" apart from "never logged in". This
+// marker cookie is set at login with a much longer lifetime and only
+// cleared on explicit logout, so its presence after the hint above is
+// gone means the session existed and expired, not that the user is new.
+const HAD_SESSION_COOKIE_NAME = "had_session";
+
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
@@ -25,8 +33,16 @@ export function proxy(request: NextRequest) {
   );
 
   if (!hasSessionHint) {
+    const hadSession = Boolean(
+      request.cookies.get(HAD_SESSION_COOKIE_NAME)?.value
+    );
+
     const loginUrl = new URL("/login", request.url);
     loginUrl.searchParams.set("redirect", pathname);
+    loginUrl.searchParams.set(
+      "reason",
+      hadSession ? "session_expired" : "login_required"
+    );
 
     return NextResponse.redirect(loginUrl);
   }

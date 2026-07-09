@@ -45,14 +45,26 @@ export function useLogout() {
   const router = useRouter();
 
   const clearAuth = useAuthStore((state) => state.clearAuth);
+  const setLoggingOut = useAuthStore((state) => state.setLoggingOut);
 
   return useMutation({
     mutationFn: () => AuthService.logout(),
+
+    // Flip this before the request even resolves - it's what tells
+    // AuthGuard to stay quiet once clearAuth() below flips
+    // isAuthenticated to false while we're still on the protected page.
+    onMutate: () => {
+      setLoggingOut(true);
+    },
 
     onSuccess: () => {
       clearAuth();
 
       router.replace("/login");
+    },
+
+    onError: () => {
+      setLoggingOut(false);
     },
   });
 }
@@ -63,14 +75,23 @@ export function useLogoutAll() {
   const clearAuth = useAuthStore(
     (state) => state.clearAuth
   );
+  const setLoggingOut = useAuthStore((state) => state.setLoggingOut);
 
   return useMutation({
     mutationFn: () =>
       AuthService.logoutAll(),
 
+    onMutate: () => {
+      setLoggingOut(true);
+    },
+
     onSuccess: () => {
       clearAuth();
       router.replace("/login");
+    },
+
+    onError: () => {
+      setLoggingOut(false);
     },
   });
 }

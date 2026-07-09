@@ -65,3 +65,37 @@ def clear_refresh_cookie(response):
             "REFRESH_COOKIE_SAMESITE"
         ],
     )
+
+
+def set_had_session_marker(response):
+    response.set_cookie(
+        key=current_app.config[
+            "HAD_SESSION_COOKIE_NAME"
+        ],
+        value="1",
+        max_age=int(
+            current_app.config[
+                "HAD_SESSION_COOKIE_MAX_AGE"
+            ].total_seconds()
+        ),
+        httponly=False,
+        secure=current_app.config[
+            "REFRESH_COOKIE_SECURE"
+        ],
+        samesite=current_app.config[
+            "REFRESH_COOKIE_SAMESITE"
+        ],
+        path="/",
+    )
+
+
+def clear_had_session_marker(response):
+    response.delete_cookie(
+        key=current_app.config[
+            "HAD_SESSION_COOKIE_NAME"
+        ],
+        path="/",
+        samesite=current_app.config[
+            "REFRESH_COOKIE_SAMESITE"
+        ],
+    )
