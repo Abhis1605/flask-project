@@ -28,6 +28,18 @@ class Product(db.Model):
         nullable=False,
         default=0
     )
+    
+    sku = db.Column(
+        db.String(50),
+        unique=True,
+        nullable=False
+    )
+
+    low_stock_threshold = db.Column(
+        db.Integer,
+        nullable=False,
+        default=10
+    )
 
     category_id = db.Column(
         db.Integer,

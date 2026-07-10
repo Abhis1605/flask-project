@@ -7,6 +7,7 @@ from app.utils.api_response import (
     success_response,
     error_response
 )
+from app.decorators.permission_required import require_permission
 
 product_bp = Blueprint(
     "product",
@@ -18,6 +19,7 @@ product_bp = Blueprint(
 
 @product_bp.route("", methods=["GET"])
 @jwt_required(locations=["headers"])
+@require_permission("can_view_products")
 def get_products():
     
     search = request.args.get('search', "").strip()
@@ -88,6 +90,7 @@ def get_product(product_id):
 
 @product_bp.route("", methods=["POST"])
 @jwt_required(locations=["headers"])
+@require_permission("can_create_product")
 def create_product():
 
     try:
@@ -120,6 +123,7 @@ def create_product():
 
 @product_bp.route("/<int:product_id>", methods=["PUT"])
 @jwt_required(locations=["headers"])
+@require_permission("can_update_product")
 def update_product(product_id):
 
     try:
@@ -159,6 +163,7 @@ def update_product(product_id):
 
 @product_bp.route("/<int:product_id>", methods=["DELETE"])
 @jwt_required(locations=["headers"])
+@require_permission("can_delete_product")
 def delete_product(product_id):
 
     deleted = ProductService.delete_product(product_id)
@@ -176,6 +181,7 @@ def delete_product(product_id):
 
 @product_bp.route("/categories", methods=["GET"])
 @jwt_required(locations=["headers"])
+@require_permission("can_view_categories")
 def get_categories():
 
     categories = ProductService.get_categories()
@@ -187,3 +193,47 @@ def get_categories():
         ],
         message="Categories fetched successfully."
     )
+
+@product_bp.route(
+    "/<int:product_id>/quantity",
+    methods=["PATCH"]
+)
+@jwt_required()
+@require_permission(
+    "can_update_stock"
+)
+def update_quantity(
+    product_id
+):
+    data = request.get_json()
+
+    operation = data.get(
+        "operation"
+    )
+
+    quantity = data.get(
+        "quantity"
+    )
+
+    try:
+        product = (
+            ProductService
+            .update_quantity(
+                product_id,
+                operation,
+                quantity
+            )
+        )
+
+        return success_response(
+            data=product.to_dict(),
+            message=
+            "Stock updated successfully."
+        )
+
+    except ValueError as e:
+
+        return error_response(
+            message=str(e),
+            status_code=400
+        )

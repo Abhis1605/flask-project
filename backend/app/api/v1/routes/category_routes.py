@@ -4,6 +4,8 @@ from flask_jwt_extended import jwt_required
 
 from app.services.category_service import CategoryService
 
+from app.decorators.permission_required import require_permission
+
 from app.utils.api_response import (
     success_response,
     error_response
@@ -20,6 +22,7 @@ category_bp = Blueprint(
 
 @category_bp.route("", methods=["GET"])
 @jwt_required(locations=["headers"])
+@require_permission("can_view_categories")
 def get_categories():
 
     categories = CategoryService.get_categories()
@@ -60,6 +63,7 @@ def get_category(category_id):
 
 @category_bp.route("", methods=["POST"])
 @jwt_required(locations=["headers"])
+@require_permission("can_create_category")
 def create_category():
 
     try:
@@ -93,6 +97,7 @@ def create_category():
 
 @category_bp.route("/<int:category_id>", methods=["PUT"])
 @jwt_required(locations=["headers"])
+@require_permission("can_update_category")
 def update_category(category_id):
 
     try:
@@ -134,6 +139,7 @@ def update_category(category_id):
 
 @category_bp.route("/<int:category_id>", methods=["DELETE"])
 @jwt_required(locations=["headers"])
+@require_permission("can_delete_category")
 def delete_category(category_id):
 
     deleted = CategoryService.delete_category(

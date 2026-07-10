@@ -207,3 +207,49 @@ class ProductService:
             db.session.rollback()
 
             raise
+    
+    @staticmethod
+    def update_quantity(
+        product_id,
+        operation,
+        quantity
+    ):
+        product = Product.query.get(
+            product_id
+        )
+
+        if not product:
+            raise ValueError(
+                "Product not found."
+            )
+
+        if quantity <= 0:
+            raise ValueError(
+                "Quantity must be greater than zero."
+            )
+
+        if operation == "add":
+            product.quantity += quantity
+
+        elif operation == "remove":
+
+            if quantity > product.quantity:
+                raise ValueError(
+                    "Insufficient stock."
+                )
+
+            product.quantity -= quantity
+
+        else:
+            raise ValueError(
+                "Invalid operation."
+            )
+
+        product.total_amount = (
+            product.price *
+            product.quantity
+        )
+
+        db.session.commit()
+
+        return product

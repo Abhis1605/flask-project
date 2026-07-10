@@ -26,12 +26,15 @@ class User(db.Model):
         nullable=False
     )
 
-    role = db.Column(
-        db.String(20),
-        nullable=False,
-        default="USER"
+    
+    role_id = db.Column(
+        db.Integer,
+        db.ForeignKey("roles.id"),
+        nullable=False
     )
 
+    role = db.relationship("Role", backref="users")
+    
     is_active = db.Column(
         db.Boolean,
         nullable=False,
@@ -57,7 +60,13 @@ class User(db.Model):
             "id": self.id,
             "full_name": self.full_name,
             "email": self.email,
-            "role": self.role,
+            "role": {
+                    "id": self.role.id,
+                    "code": self.role.code,
+                    "display_name": self.role.display_name
+                }
+            if self.role
+            else None,
             "is_active": self.is_active,
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,

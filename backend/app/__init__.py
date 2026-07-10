@@ -23,7 +23,7 @@ def create_app():
     jwt.init_app(app)
 
     # Import Models
-    from app.models import User, Product, Category
+    from app.models import (User, Product, Category, Role)
 
     # Initialize Migrations
     Migrate(app, db)
@@ -40,12 +40,14 @@ def create_app():
         auth_bp,
         product_bp,
         category_bp,
-        home_bp
+        home_bp,
+        user_bp
     )
 
     app.register_blueprint(home_bp)
     app.register_blueprint(auth_bp)
     app.register_blueprint(product_bp)
     app.register_blueprint(category_bp)
+    app.register_blueprint(user_bp)
 
     return app

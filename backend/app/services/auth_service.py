@@ -1,5 +1,6 @@
 from app.extensions import db
 from app.models import User
+from app.models import Role
 
 from app.utils import hash_password, validate_password, validate_name, ValidationError, validate_email, verify_password
 
@@ -31,6 +32,10 @@ class AuthService:
             email = email
         ).first()
         
+        default_role = Role.query.filter_by(
+            code="user"
+        ).first()
+        
         if existing_user:
             
             return {
@@ -41,7 +46,8 @@ class AuthService:
         user = User(
             full_name= full_name,
             email= email,
-            password_hash= hash_password(password)
+            password_hash= hash_password(password),
+            role=default_role
         )
         
         db.session.add(user)

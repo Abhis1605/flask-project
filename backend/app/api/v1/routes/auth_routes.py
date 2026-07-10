@@ -41,7 +41,6 @@ def _issue_access_token(user):
         identity=str(user.id),
         additional_claims={
             "email": user.email,
-            "role": user.role,
         },
     )
 
