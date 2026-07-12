@@ -8,14 +8,20 @@ interface CategoryTableProps {
   categories: Category[];
   onEdit: (category: Category) => void;
   onDelete: (category: Category) => void;
+  canUpdate: boolean;
+  canDelete: boolean;
 }
 
 export default function CategoryTable({
   categories,
   onEdit,
   onDelete,
+  canUpdate,
+  canDelete,
 }: CategoryTableProps) {
   const isMobile = useMobile();
+
+  const hasActions = canUpdate || canDelete;
 
   if (categories.length === 0) {
     return (
@@ -39,27 +45,31 @@ export default function CategoryTable({
             </p>
 
             <div className="flex shrink-0 gap-1">
-              <Tooltip label="Edit">
-                <button
-                  type="button"
-                  onClick={() => onEdit(category)}
-                  aria-label="Edit category"
-                  className="rounded-lg p-2 cursor-pointer text-slate-400 transition-colors hover:bg-slate-100 hover:text-indigo-600 dark:hover:bg-slate-800"
-                >
-                  <Pencil className="h-4 w-4" />
-                </button>
-              </Tooltip>
+              {canUpdate && (
+                <Tooltip label="Edit">
+                  <button
+                    type="button"
+                    onClick={() => onEdit(category)}
+                    aria-label="Edit category"
+                    className="rounded-lg p-2 cursor-pointer text-slate-400 transition-colors hover:bg-slate-100 hover:text-indigo-600 dark:hover:bg-slate-800"
+                  >
+                    <Pencil className="h-4 w-4" />
+                  </button>
+                </Tooltip>
+              )}
 
-              <Tooltip label="Delete">
-                <button
-                  type="button"
-                  onClick={() => onDelete(category)}
-                  aria-label="Delete category"
-                  className="rounded-lg p-2 cursor-pointer text-slate-400 transition-colors hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-500/10"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </button>
-              </Tooltip>
+              {canDelete && (
+                <Tooltip label="Delete">
+                  <button
+                    type="button"
+                    onClick={() => onDelete(category)}
+                    aria-label="Delete category"
+                    className="rounded-lg p-2 cursor-pointer text-slate-400 transition-colors hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-500/10"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </Tooltip>
+              )}
             </div>
           </div>
         ))}
@@ -73,9 +83,11 @@ export default function CategoryTable({
         <thead>
           <tr className="border-b border-slate-200 text-slate-500 dark:border-slate-800 dark:text-slate-400">
             <th className="whitespace-nowrap px-4 py-3 font-medium">Name</th>
-            <th className="whitespace-nowrap px-4 py-3 font-medium text-right">
-              Actions
-            </th>
+            {hasActions && (
+              <th className="whitespace-nowrap px-4 py-3 font-medium text-right">
+                Actions
+              </th>
+            )}
           </tr>
         </thead>
 
@@ -86,31 +98,37 @@ export default function CategoryTable({
                 {category.name}
               </td>
 
-              <td className="whitespace-nowrap px-4 py-3">
-                <div className="flex justify-end gap-1">
-                  <Tooltip label="Edit">
-                    <button
-                      type="button"
-                      onClick={() => onEdit(category)}
-                      aria-label="Edit category"
-                      className="rounded-lg p-2 cursor-pointer text-slate-400 transition-colors hover:bg-slate-100 hover:text-indigo-600 dark:hover:bg-slate-800"
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </button>
-                  </Tooltip>
+              {hasActions && (
+                <td className="whitespace-nowrap px-4 py-3">
+                  <div className="flex justify-end gap-1">
+                    {canUpdate && (
+                      <Tooltip label="Edit">
+                        <button
+                          type="button"
+                          onClick={() => onEdit(category)}
+                          aria-label="Edit category"
+                          className="rounded-lg p-2 cursor-pointer text-slate-400 transition-colors hover:bg-slate-100 hover:text-indigo-600 dark:hover:bg-slate-800"
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </button>
+                      </Tooltip>
+                    )}
 
-                  <Tooltip label="Delete">
-                    <button
-                      type="button"
-                      onClick={() => onDelete(category)}
-                      aria-label="Delete category"
-                      className="rounded-lg p-2 cursor-pointer text-slate-400 transition-colors hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-500/10"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </Tooltip>
-                </div>
-              </td>
+                    {canDelete && (
+                      <Tooltip label="Delete">
+                        <button
+                          type="button"
+                          onClick={() => onDelete(category)}
+                          aria-label="Delete category"
+                          className="rounded-lg p-2 cursor-pointer text-slate-400 transition-colors hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-500/10"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </Tooltip>
+                    )}
+                  </div>
+                </td>
+              )}
             </tr>
           ))}
         </tbody>

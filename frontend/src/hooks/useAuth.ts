@@ -3,13 +3,14 @@ import { useRouter } from "next/navigation";
 
 import { AuthService } from "@/services/auth.service";
 import { useAuthStore } from "@/store/auth.store";
+import { getRoleHome } from "@/config/roles";
 
 import type {
   LoginRequest,
   RegisterRequest,
 } from "@/types/auth";
 
-export function useLogin(redirectTo: string = "/dashboard") {
+export function useLogin(redirectTo?: string) {
   const router = useRouter();
 
   const setUser = useAuthStore((state) => state.setUser);
@@ -23,7 +24,7 @@ export function useLogin(redirectTo: string = "/dashboard") {
       setAccessToken(response.data.access_token);
       setUser(response.data.user);
 
-      router.push(redirectTo);
+      router.push(redirectTo ?? getRoleHome(response.data.user.role.code));
     },
   });
 }

@@ -11,10 +11,12 @@ import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import ProductFilters, { SORT_OPTIONS } from "@/components/products/ProductFilters";
 import ProductTable from "@/components/products/ProductTable";
 import ProductFormModal from "@/components/products/ProductFormModal";
+import StockUpdateModal from "@/components/products/StockUpdateModal";
 import { useProducts, useDeleteProduct } from "@/hooks/useProducts";
+import { usePermissions } from "@/hooks/usePermissions";
 import type { Product, ProductOrder, ProductSort } from "@/types/product";
 
-export default function ProductsPage() {
+export default function ProductsPageContent() {
   const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("");
@@ -26,8 +28,15 @@ export default function ProductsPage() {
   const [formOpen, setFormOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [deletingProduct, setDeletingProduct] = useState<Product | null>(null);
+  const [stockProduct, setStockProduct] = useState<Product | null>(null);
 
   const deleteProduct = useDeleteProduct();
+  const { hasPermission } = usePermissions();
+
+  const canCreate = hasPermission("can_create_product");
+  const canUpdate = hasPermission("can_update_product");
+  const canDelete = hasPermission("can_delete_product");
+  const canUpdateStock = hasPermission("can_update_stock");
 
   useEffect(() => {
     const timeout = setTimeout(() => {
@@ -82,10 +91,12 @@ export default function ProductsPage() {
           Manage your product inventory.
         </p>
 
-        <Button onClick={openCreateForm}>
-          <Plus className="mr-2 h-4 w-4" />
-          Add Product
-        </Button>
+        {canCreate && (
+          <Button onClick={openCreateForm}>
+            <Plus className="mr-2 h-4 w-4" />
+            Add Product
+          </Button>
+        )}
       </div>
 
       <Card>
@@ -113,6 +124,10 @@ export default function ProductsPage() {
                 products={data?.products ?? []}
                 onEdit={openEditForm}
                 onDelete={setDeletingProduct}
+                onUpdateStock={setStockProduct}
+                canUpdate={canUpdate}
+                canDelete={canDelete}
+                canUpdateStock={canUpdateStock}
               />
             </div>
           )}
@@ -133,11 +148,13 @@ export default function ProductsPage() {
         )}
       </Card>
 
-      <ProductFormModal
-        open={formOpen}
-        onClose={() => setFormOpen(false)}
-        product={editingProduct}
-      />
+      {(canCreate || canUpdate) && (
+        <ProductFormModal
+          open={formOpen}
+          onClose={() => setFormOpen(false)}
+          product={editingProduct}
+        />
+      )}
 
       <ConfirmDialog
         open={!!deletingProduct}
@@ -147,6 +164,14 @@ export default function ProductsPage() {
         onConfirm={confirmDelete}
         onClose={() => setDeletingProduct(null)}
       />
+
+      {canUpdateStock && (
+        <StockUpdateModal
+          open={!!stockProduct}
+          onClose={() => setStockProduct(null)}
+          product={stockProduct}
+        />
+      )}
     </div>
   );
 }

@@ -41,7 +41,8 @@ def create_app():
         product_bp,
         category_bp,
         home_bp,
-        user_bp
+        user_bp,
+        role_bp
     )
 
     app.register_blueprint(home_bp)
@@ -49,5 +50,6 @@ def create_app():
     app.register_blueprint(product_bp)
     app.register_blueprint(category_bp)
     app.register_blueprint(user_bp)
+    app.register_blueprint(role_bp)
 
     return app

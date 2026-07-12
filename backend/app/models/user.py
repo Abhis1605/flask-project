@@ -60,13 +60,10 @@ class User(db.Model):
             "id": self.id,
             "full_name": self.full_name,
             "email": self.email,
-            "role": {
-                    "id": self.role.id,
-                    "code": self.role.code,
-                    "display_name": self.role.display_name
-                }
-            if self.role
-            else None,
+            "role": self.role.to_dict() if self.role else None,
+            "permissions": (
+                self.role.to_permissions_dict() if self.role else {}
+            ),
             "is_active": self.is_active,
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,

@@ -1,51 +1,32 @@
 "use client";
 
-import { Package, Tags } from "lucide-react";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 
-import { useDashboard } from "@/hooks/useDashboard";
-import StatCard from "@/components/dashboard/StatCard";
+import { useAuthStore } from "@/store/auth.store";
+import { getRoleHome } from "@/config/roles";
 import Spinner from "@/components/ui/Spinner";
-import Link from "next/link";
 
-export default function DashboardPage() {
-  const { data, isLoading } = useDashboard();
+export default function DashboardRedirectPage() {
+  const router = useRouter();
+  const isInitialized = useAuthStore((state) => state.isInitialized);
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const user = useAuthStore((state) => state.user);
 
-  if (isLoading) {
-    return (
-      <div className="flex h-64 items-center justify-center">
-        <Spinner />
-      </div>
-    );
-  }
+  useEffect(() => {
+    if (!isInitialized) return;
+
+    if (!isAuthenticated || !user) {
+      router.replace("/login");
+      return;
+    }
+ 
+    router.replace(getRoleHome(user.role.code));
+  }, [isInitialized, isAuthenticated, user, router]);
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-xl font-semibold text-slate-800 dark:text-slate-100">
-          Welcome back, {data?.user.full_name}
-        </h2>
-        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-          Here&apos;s an overview of your inventory.
-        </p>
-      </div>
-
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <Link href={"/products"}>
-          <StatCard
-          label="Total Products"
-          value={data?.stats.total_products ?? 0}
-          icon={Package}
-        />
-        </Link>
-
-        <Link href={"/categories"}>
-          <StatCard
-          label="Total Categories"
-          value={data?.stats.total_categories ?? 0}
-          icon={Tags}
-        />
-        </Link>
-      </div>
+    <div className="flex min-h-screen items-center justify-center bg-slate-50 dark:bg-slate-950">
+      <Spinner />
     </div>
   );
 }

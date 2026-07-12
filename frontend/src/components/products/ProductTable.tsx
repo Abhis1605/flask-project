@@ -1,4 +1,4 @@
-import { Package, Pencil, Trash2 } from "lucide-react";
+import { Boxes, Package, Pencil, Trash2 } from "lucide-react";
 
 import Badge from "@/components/ui/Badge";
 import Tooltip from "@/components/ui/Tooltip";
@@ -9,14 +9,24 @@ interface ProductTableProps {
   products: Product[];
   onEdit: (product: Product) => void;
   onDelete: (product: Product) => void;
+  onUpdateStock: (product: Product) => void;
+  canUpdate: boolean;
+  canDelete: boolean;
+  canUpdateStock: boolean;
 }
 
 export default function ProductTable({
   products,
   onEdit,
   onDelete,
+  onUpdateStock,
+  canUpdate,
+  canDelete,
+  canUpdateStock,
 }: ProductTableProps) {
   const isMobile = useMobile();
+
+  const hasActions = canUpdate || canDelete || canUpdateStock;
 
   if (products.length === 0) {
     return (
@@ -51,27 +61,44 @@ export default function ProductTable({
               </div>
 
               <div className="flex shrink-0 gap-1">
-                <Tooltip label="Edit">
-                  <button
-                    type="button"
-                    onClick={() => onEdit(product)}
-                    aria-label="Edit product"
-                    className="rounded-lg p-2 text-slate-400 transition-colors hover:bg-slate-100 hover:text-indigo-600 dark:hover:bg-slate-800"
-                  >
-                    <Pencil className="h-4 w-4" />
-                  </button>
-                </Tooltip>
+                {canUpdateStock && (
+                  <Tooltip label="Update Stock">
+                    <button
+                      type="button"
+                      onClick={() => onUpdateStock(product)}
+                      aria-label="Update stock"
+                      className="rounded-lg p-2 text-slate-400 transition-colors hover:bg-slate-100 hover:text-indigo-600 dark:hover:bg-slate-800"
+                    >
+                      <Boxes className="h-4 w-4" />
+                    </button>
+                  </Tooltip>
+                )}
 
-                <Tooltip label="Delete">
-                  <button
-                    type="button"
-                    onClick={() => onDelete(product)}
-                    aria-label="Delete product"
-                    className="rounded-lg p-2 text-slate-400 transition-colors hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-500/10"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
-                </Tooltip>
+                {canUpdate && (
+                  <Tooltip label="Edit">
+                    <button
+                      type="button"
+                      onClick={() => onEdit(product)}
+                      aria-label="Edit product"
+                      className="rounded-lg p-2 text-slate-400 transition-colors hover:bg-slate-100 hover:text-indigo-600 dark:hover:bg-slate-800"
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </button>
+                  </Tooltip>
+                )}
+
+                {canDelete && (
+                  <Tooltip label="Delete">
+                    <button
+                      type="button"
+                      onClick={() => onDelete(product)}
+                      aria-label="Delete product"
+                      className="rounded-lg p-2 text-slate-400 transition-colors hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-500/10"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </Tooltip>
+                )}
               </div>
             </div>
 
@@ -113,7 +140,9 @@ export default function ProductTable({
             <th className="whitespace-nowrap px-4 py-3 font-medium">Price</th>
             <th className="whitespace-nowrap px-4 py-3 font-medium">Quantity</th>
             <th className="whitespace-nowrap px-4 py-3 font-medium">Total Amount</th>
-            <th className="whitespace-nowrap px-4 py-3 font-medium text-right">Actions</th>
+            {hasActions && (
+              <th className="whitespace-nowrap px-4 py-3 font-medium text-right">Actions</th>
+            )}
           </tr>
         </thead>
 
@@ -142,31 +171,50 @@ export default function ProductTable({
                 ₹{product.total_amount.toFixed(2)}
               </td>
 
-              <td className="whitespace-nowrap px-4 py-3">
-                <div className="flex justify-end gap-1">
-                  <Tooltip label="Edit">
-                    <button
-                      type="button"
-                      onClick={() => onEdit(product)}
-                      aria-label="Edit product"
-                      className="rounded-lg p-2 cursor-pointer text-slate-400 transition-colors hover:bg-slate-100 hover:text-indigo-600 dark:hover:bg-slate-800"
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </button>
-                  </Tooltip>
+              {hasActions && (
+                <td className="whitespace-nowrap px-4 py-3">
+                  <div className="flex justify-end gap-1">
+                    {canUpdateStock && (
+                      <Tooltip label="Update Stock">
+                        <button
+                          type="button"
+                          onClick={() => onUpdateStock(product)}
+                          aria-label="Update stock"
+                          className="rounded-lg p-2 cursor-pointer text-slate-400 transition-colors hover:bg-slate-100 hover:text-indigo-600 dark:hover:bg-slate-800"
+                        >
+                          <Boxes className="h-4 w-4" />
+                        </button>
+                      </Tooltip>
+                    )}
 
-                  <Tooltip label="Delete">
-                    <button
-                      type="button"
-                      onClick={() => onDelete(product)}
-                      aria-label="Delete product"
-                      className="rounded-lg p-2 cursor-pointer text-slate-400 transition-colors hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-500/10"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </Tooltip>
-                </div>
-              </td>
+                    {canUpdate && (
+                      <Tooltip label="Edit">
+                        <button
+                          type="button"
+                          onClick={() => onEdit(product)}
+                          aria-label="Edit product"
+                          className="rounded-lg p-2 cursor-pointer text-slate-400 transition-colors hover:bg-slate-100 hover:text-indigo-600 dark:hover:bg-slate-800"
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </button>
+                      </Tooltip>
+                    )}
+
+                    {canDelete && (
+                      <Tooltip label="Delete">
+                        <button
+                          type="button"
+                          onClick={() => onDelete(product)}
+                          aria-label="Delete product"
+                          className="rounded-lg p-2 cursor-pointer text-slate-400 transition-colors hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-500/10"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </Tooltip>
+                    )}
+                  </div>
+                </td>
+              )}
             </tr>
           ))}
         </tbody>

@@ -10,15 +10,21 @@ import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import CategoryTable from "@/components/categories/CategoryTable";
 import CategoryFormModal from "@/components/categories/CategoryFormModal";
 import { useCategories, useDeleteCategory } from "@/hooks/useCategories";
+import { usePermissions } from "@/hooks/usePermissions";
 import type { Category } from "@/types/category";
 
-export default function CategoriesPage() {
+export default function CategoriesPageContent() {
   const [formOpen, setFormOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [deletingCategory, setDeletingCategory] = useState<Category | null>(null);
 
   const { data, isLoading } = useCategories();
   const deleteCategory = useDeleteCategory();
+  const { hasPermission } = usePermissions();
+
+  const canCreate = hasPermission("can_create_category");
+  const canUpdate = hasPermission("can_update_category");
+  const canDelete = hasPermission("can_delete_category");
 
   const openCreateForm = () => {
     setEditingCategory(null);
@@ -45,10 +51,12 @@ export default function CategoriesPage() {
           Manage your product categories.
         </p>
 
-        <Button onClick={openCreateForm}>
-          <Plus className="mr-2 h-4 w-4" />
-          Add Category
-        </Button>
+        {canCreate && (
+          <Button onClick={openCreateForm}>
+            <Plus className="mr-2 h-4 w-4" />
+            Add Category
+          </Button>
+        )}
       </div>
 
       <Card>
@@ -61,15 +69,19 @@ export default function CategoriesPage() {
             categories={data ?? []}
             onEdit={openEditForm}
             onDelete={setDeletingCategory}
+            canUpdate={canUpdate}
+            canDelete={canDelete}
           />
         )}
       </Card>
 
-      <CategoryFormModal
-        open={formOpen}
-        onClose={() => setFormOpen(false)}
-        category={editingCategory}
-      />
+      {canCreate || canUpdate ? (
+        <CategoryFormModal
+          open={formOpen}
+          onClose={() => setFormOpen(false)}
+          category={editingCategory}
+        />
+      ) : null}
 
       <ConfirmDialog
         open={!!deletingCategory}

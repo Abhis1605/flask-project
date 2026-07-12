@@ -5,6 +5,20 @@ from app.extensions import db
 class Role(db.Model):
     __tablename__ = "roles"
 
+    PERMISSION_FIELDS = (
+        "can_view_products",
+        "can_create_product",
+        "can_update_product",
+        "can_delete_product",
+        "can_view_categories",
+        "can_create_category",
+        "can_update_category",
+        "can_delete_category",
+        "can_view_stock",
+        "can_update_stock",
+        "can_manage_users",
+    )
+
     id = db.Column(
         db.Integer,
         primary_key=True
@@ -107,3 +121,16 @@ class Role(db.Model):
         default=datetime.utcnow,
         onupdate=datetime.utcnow
     )
+
+    def to_permissions_dict(self):
+        return {
+            field: getattr(self, field)
+            for field in self.PERMISSION_FIELDS
+        }
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "code": self.code,
+            "display_name": self.display_name,
+        }

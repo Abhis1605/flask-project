@@ -8,8 +8,9 @@ import { Menu, Moon, Sun, X } from "lucide-react";
 import Button from "@/components/ui/Button";
 import { useSidebarStore } from "@/store/sidebar.store";
 import { useMobile } from "@/hooks/useMobile";
+import { usePermissions } from "@/hooks/usePermissions";
 import UserMenu from "./UserMenu";
-import { NAV_ITEMS } from "./nav-items";
+import { getNavItems } from "./nav-items";
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -18,13 +19,15 @@ export default function Navbar() {
   const [mounted, setMounted] = useState(false);
   const mobileOpen = useSidebarStore((state) => state.mobileOpen);
   const toggleMobileSidebar = useSidebarStore((state) => state.toggleMobileSidebar);
+  const { prefix, permissions } = usePermissions();
+  const navItems = getNavItems(prefix, permissions);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
   const title =
-    NAV_ITEMS.find(
+    navItems.find(
       (item) => pathname === item.href || pathname?.startsWith(`${item.href}/`)
     )?.label ?? "Dashboard";
 

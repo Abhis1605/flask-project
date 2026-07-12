@@ -56,3 +56,23 @@ export function useDeleteProduct() {
     },
   });
 }
+
+export function useUpdateProductQuantity() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      id,
+      data,
+    }: {
+      id: number;
+      data: { operation: "add" | "remove"; quantity: number };
+    }) => ProductService.updateQuantity(id, data),
+
+    onSuccess: () => {
+      toast.success("Stock updated successfully.");
+      queryClient.invalidateQueries({ queryKey: PRODUCTS_KEY });
+      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+    },
+  });
+}

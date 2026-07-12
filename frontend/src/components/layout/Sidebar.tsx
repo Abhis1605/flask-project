@@ -9,11 +9,14 @@ import clsx from "clsx";
 import { useSidebarStore } from "@/store/sidebar.store";
 import { useLogout } from "@/hooks/useAuth";
 import { useMobile } from "@/hooks/useMobile";
-import { NAV_ITEMS } from "./nav-items";
+import { usePermissions } from "@/hooks/usePermissions";
+import { getNavItems } from "./nav-items";
 
 export default function Sidebar() {
   const pathname = usePathname();
   const isMobile = useMobile();
+  const { prefix, permissions } = usePermissions();
+  const navItems = getNavItems(prefix, permissions);
 
   const collapsed = useSidebarStore((state) => state.collapsed);
   const toggleSidebar = useSidebarStore((state) => state.toggleSidebar);
@@ -86,7 +89,7 @@ export default function Sidebar() {
         </div>
 
         <nav className="flex-1 overflow-y-auto px-3 py-4">
-          {NAV_ITEMS.map((item) => {
+          {navItems.map((item) => {
             const active =
               pathname === item.href || pathname?.startsWith(`${item.href}/`);
 

@@ -43,10 +43,12 @@ export default function LoginForm() {
 
   const redirectParam = searchParams.get("redirect");
   // Only ever follow a same-site relative path — never an absolute/external URL.
+  // If there's no explicit redirect target, useLogin falls back to the
+  // signed-in user's own role-based dashboard home.
   const redirectTo =
     redirectParam && redirectParam.startsWith("/") && !redirectParam.startsWith("//")
       ? redirectParam
-      : "/dashboard";
+      : undefined;
 
   const login = useLogin(redirectTo);
 
