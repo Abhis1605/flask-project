@@ -1,9 +1,110 @@
+import { useState } from "react";
+
 import { Boxes, Package, Pencil, Trash2 } from "lucide-react";
 
 import Badge from "@/components/ui/Badge";
+import Select from "@/components/ui/Select";
 import Tooltip from "@/components/ui/Tooltip";
 import { useMobile } from "@/hooks/useMobile";
 import type { Product } from "@/types/product";
+
+type ProductAction = "" | "stock" | "edit" | "delete";
+
+function ProductActionsMenu({
+  product,
+  canUpdate,
+  canDelete,
+  canUpdateStock,
+  onEdit,
+  onDelete,
+  onUpdateStock,
+}: {
+  product: Product;
+  canUpdate: boolean;
+  canDelete: boolean;
+  canUpdateStock: boolean;
+  onEdit: (product: Product) => void;
+  onDelete: (product: Product) => void;
+  onUpdateStock: (product: Product) => void;
+}) {
+  const [action, setAction] = useState<ProductAction>("");
+
+  const handleAction = (selectedAction: ProductAction) => {
+    switch (selectedAction) {
+      case "stock":
+        onUpdateStock(product);
+        break;
+      case "edit":
+        onEdit(product);
+        break;
+      case "delete":
+        onDelete(product);
+        break;
+    }
+
+    setAction("");
+  };
+
+  const actionsAvailable = [canUpdateStock, canUpdate, canDelete].filter(Boolean).length;
+
+  const buttonClassName =
+    "inline-flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-600 transition-colors hover:bg-slate-100 hover:text-indigo-600 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800";
+
+  if (actionsAvailable > 1) {
+    return (
+      <Select
+        value={action}
+        onChange={(e) => handleAction(e.target.value as ProductAction)}
+        className="w-full min-w-40 text-sm"
+        aria-label={`Actions for ${product.name}`}
+      >
+        <option value="" disabled>
+          Actions
+        </option>
+        {canUpdateStock && <option value="stock">Update stock</option>}
+        {canUpdate && <option value="edit">Edit product</option>}
+        {canDelete && <option value="delete">Delete product</option>}
+      </Select>
+    );
+  }
+
+  return (
+    <div className="flex flex-wrap gap-2">
+      {canUpdateStock && (
+        <button
+          type="button"
+          onClick={() => onUpdateStock(product)}
+          className={buttonClassName}
+        >
+          <Boxes className="h-4 w-4" />
+          Update stock
+        </button>
+      )}
+
+      {canUpdate && (
+        <button
+          type="button"
+          onClick={() => onEdit(product)}
+          className={buttonClassName}
+        >
+          <Pencil className="h-4 w-4" />
+          Edit
+        </button>
+      )}
+
+      {canDelete && (
+        <button
+          type="button"
+          onClick={() => onDelete(product)}
+          className="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-600 transition-colors hover:bg-slate-100 hover:text-indigo-600 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+        >
+          <Trash2 className="h-4 w-4" />
+          Delete
+        </button>
+      )}
+    </div>
+  );
+}
 
 interface ProductTableProps {
   products: Product[];
@@ -45,7 +146,7 @@ export default function ProductTable({
             key={product.id}
             className="rounded-xl border border-slate-200 p-4 dark:border-slate-800"
           >
-            <div className="flex items-start justify-between gap-3">
+            <div className="space-y-3">
               <div className="min-w-0">
                 <p className="truncate font-medium text-slate-800 dark:text-slate-100">
                   {product.name}
@@ -60,70 +161,43 @@ export default function ProductTable({
                 </div>
               </div>
 
-              <div className="flex shrink-0 gap-1">
-                {canUpdateStock && (
-                  <Tooltip label="Update Stock">
-                    <button
-                      type="button"
-                      onClick={() => onUpdateStock(product)}
-                      aria-label="Update stock"
-                      className="rounded-lg p-2 text-slate-400 transition-colors hover:bg-slate-100 hover:text-indigo-600 dark:hover:bg-slate-800"
-                    >
-                      <Boxes className="h-4 w-4" />
-                    </button>
-                  </Tooltip>
-                )}
+              <dl className="grid grid-cols-3 gap-2 border-t border-slate-100 pt-3 text-sm dark:border-slate-800">
+                <div>
+                  <dt className="text-xs text-slate-400">Price</dt>
+                  <dd className="font-medium text-slate-700 dark:text-slate-200">
+                    ₹{product.price.toFixed(2)}
+                  </dd>
+                </div>
 
-                {canUpdate && (
-                  <Tooltip label="Edit">
-                    <button
-                      type="button"
-                      onClick={() => onEdit(product)}
-                      aria-label="Edit product"
-                      className="rounded-lg p-2 text-slate-400 transition-colors hover:bg-slate-100 hover:text-indigo-600 dark:hover:bg-slate-800"
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </button>
-                  </Tooltip>
-                )}
+                <div>
+                  <dt className="text-xs text-slate-400">Quantity</dt>
+                  <dd className="font-medium text-slate-700 dark:text-slate-200">
+                    {product.quantity}
+                  </dd>
+                </div>
 
-                {canDelete && (
-                  <Tooltip label="Delete">
-                    <button
-                      type="button"
-                      onClick={() => onDelete(product)}
-                      aria-label="Delete product"
-                      className="rounded-lg p-2 text-slate-400 transition-colors hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-500/10"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </Tooltip>
-                )}
-              </div>
+                <div>
+                  <dt className="text-xs text-slate-400">Total</dt>
+                  <dd className="font-medium text-slate-700 dark:text-slate-200">
+                    ₹{product.total_amount.toFixed(2)}
+                  </dd>
+                </div>
+              </dl>
+
+              {(canUpdate || canDelete || canUpdateStock) && (
+                <div className="border-t border-slate-100 pt-3 dark:border-slate-800">
+                  <ProductActionsMenu
+                    product={product}
+                    canUpdate={canUpdate}
+                    canDelete={canDelete}
+                    canUpdateStock={canUpdateStock}
+                    onEdit={onEdit}
+                    onDelete={onDelete}
+                    onUpdateStock={onUpdateStock}
+                  />
+                </div>
+              )}
             </div>
-
-            <dl className="mt-3 grid grid-cols-3 gap-2 border-t border-slate-100 pt-3 text-sm dark:border-slate-800">
-              <div>
-                <dt className="text-xs text-slate-400">Price</dt>
-                <dd className="font-medium text-slate-700 dark:text-slate-200">
-                  ₹{product.price.toFixed(2)}
-                </dd>
-              </div>
-
-              <div>
-                <dt className="text-xs text-slate-400">Quantity</dt>
-                <dd className="font-medium text-slate-700 dark:text-slate-200">
-                  {product.quantity}
-                </dd>
-              </div>
-
-              <div>
-                <dt className="text-xs text-slate-400">Total</dt>
-                <dd className="font-medium text-slate-700 dark:text-slate-200">
-                  ₹{product.total_amount.toFixed(2)}
-                </dd>
-              </div>
-            </dl>
           </div>
         ))}
       </div>
@@ -173,45 +247,16 @@ export default function ProductTable({
 
               {hasActions && (
                 <td className="whitespace-nowrap px-4 py-3">
-                  <div className="flex justify-end gap-1">
-                    {canUpdateStock && (
-                      <Tooltip label="Update Stock">
-                        <button
-                          type="button"
-                          onClick={() => onUpdateStock(product)}
-                          aria-label="Update stock"
-                          className="rounded-lg p-2 cursor-pointer text-slate-400 transition-colors hover:bg-slate-100 hover:text-indigo-600 dark:hover:bg-slate-800"
-                        >
-                          <Boxes className="h-4 w-4" />
-                        </button>
-                      </Tooltip>
-                    )}
-
-                    {canUpdate && (
-                      <Tooltip label="Edit">
-                        <button
-                          type="button"
-                          onClick={() => onEdit(product)}
-                          aria-label="Edit product"
-                          className="rounded-lg p-2 cursor-pointer text-slate-400 transition-colors hover:bg-slate-100 hover:text-indigo-600 dark:hover:bg-slate-800"
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </button>
-                      </Tooltip>
-                    )}
-
-                    {canDelete && (
-                      <Tooltip label="Delete">
-                        <button
-                          type="button"
-                          onClick={() => onDelete(product)}
-                          aria-label="Delete product"
-                          className="rounded-lg p-2 cursor-pointer text-slate-400 transition-colors hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-500/10"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
-                      </Tooltip>
-                    )}
+                  <div className="flex justify-end">
+                    <ProductActionsMenu
+                      product={product}
+                      canUpdate={canUpdate}
+                      canDelete={canDelete}
+                      canUpdateStock={canUpdateStock}
+                      onEdit={onEdit}
+                      onDelete={onDelete}
+                      onUpdateStock={onUpdateStock}
+                    />
                   </div>
                 </td>
               )}

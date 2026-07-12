@@ -53,6 +53,7 @@ export default function UsersPageContent() {
           <UserTable
             users={users ?? []}
             roles={roles ?? []}
+            currentUserId={currentUser?.id}
             onRoleChange={(user, roleId) =>
               updateRole.mutate({ id: user.id, roleId })
             }

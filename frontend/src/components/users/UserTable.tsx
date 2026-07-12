@@ -4,13 +4,16 @@ import { Trash2, Users as UsersIcon } from "lucide-react";
 
 import Avatar from "@/components/ui/Avatar";
 import Badge from "@/components/ui/Badge";
+import Button from "@/components/ui/Button";
 import Select from "@/components/ui/Select";
 import Tooltip from "@/components/ui/Tooltip";
+import { useMobile } from "@/hooks/useMobile";
 import type { Role, User } from "@/types/auth";
 
 interface UserTableProps {
   users: User[];
   roles: Role[];
+  currentUserId?: number;
   onRoleChange: (user: User, roleId: number) => void;
   onToggleStatus: (user: User) => void;
   onDelete: (user: User) => void;
@@ -19,15 +22,88 @@ interface UserTableProps {
 export default function UserTable({
   users,
   roles,
+  currentUserId,
   onRoleChange,
   onToggleStatus,
   onDelete,
 }: UserTableProps) {
+  const isMobile = useMobile();
+
   if (users.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center gap-2 py-16 text-slate-400">
         <UsersIcon className="h-10 w-10" />
         <p className="text-sm">No users found.</p>
+      </div>
+    );
+  }
+
+  if (isMobile) {
+    return (
+      <div className="space-y-3">
+        {users.map((user) => {
+          const canDeleteUser = currentUserId !== user.id;
+
+          return (
+            <div
+              key={user.id}
+              className="rounded-xl border border-slate-200 p-4 dark:border-slate-800"
+            >
+              <div className="flex items-start gap-3">
+                <Avatar name={user.full_name} />
+
+                <div className="min-w-0 flex-1">
+                  <p className="truncate font-medium text-slate-800 dark:text-slate-100">
+                    {user.full_name}
+                  </p>
+                  <p className="truncate text-xs text-slate-400">{user.email}</p>
+                </div>
+              </div>
+
+              <div className="mt-4 space-y-3">
+                <div>
+                  <p className="mb-2 text-xs font-medium uppercase tracking-wide text-slate-400">
+                    Role
+                  </p>
+                  <Select
+                    value={user.role.id}
+                    onChange={(e) => onRoleChange(user, Number(e.target.value))}
+                    className="w-full"
+                  >
+                    {roles.map((role) => (
+                      <option key={role.id} value={role.id}>
+                        {role.display_name}
+                      </option>
+                    ))}
+                  </Select>
+                </div>
+
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => onToggleStatus(user)}
+                  className="w-full justify-start gap-2"
+                >
+                  <span>Status</span>
+                  <Badge variant={user.is_active ? "success" : "danger"}>
+                    {user.is_active ? "Active" : "Inactive"}
+                  </Badge>
+                </Button>
+
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => canDeleteUser && onDelete(user)}
+                  disabled={!canDeleteUser}
+                  className="w-full justify-start gap-2"
+                >
+                  <Trash2 className="h-4 w-4" />
+                  Delete user
+                </Button>
+              </div>
+            </div>
+          );
+        })}
       </div>
     );
   }
@@ -65,7 +141,7 @@ export default function UserTable({
                 <Select
                   value={user.role.id}
                   onChange={(e) => onRoleChange(user, Number(e.target.value))}
-                  className="min-w-[10rem]"
+                  className="min-w-40"
                 >
                   {roles.map((role) => (
                     <option key={role.id} value={role.id}>
@@ -94,7 +170,7 @@ export default function UserTable({
                       type="button"
                       onClick={() => onDelete(user)}
                       aria-label="Delete user"
-                      className="rounded-lg p-2 cursor-pointer text-slate-400 transition-colors hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-500/10"
+                      className="rounded-lg p-2 cursor-pointer text-slate-400 transition-colors hover:bg-slate-100 hover:text-indigo-600 dark:hover:bg-slate-800"
                     >
                       <Trash2 className="h-4 w-4" />
                     </button>
