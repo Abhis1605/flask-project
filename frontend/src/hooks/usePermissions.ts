@@ -13,6 +13,8 @@ const EMPTY_PERMISSIONS: Permissions = {
   can_delete_category: false,
   can_view_stock: false,
   can_update_stock: false,
+  can_view_stock_transactions: false,
+  can_adjust_stock: false,
   can_manage_users: false,
 };
 

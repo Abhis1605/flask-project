@@ -1,7 +1,9 @@
 from sqlalchemy import func
+from uuid import uuid4
+from flask_jwt_extended import current_user
 
 from app.extensions import db
-from app.models import Product, Category
+from app.models import Product, Category, StockTransaction
 
 
 class ProductService:
@@ -212,26 +214,35 @@ class ProductService:
     def update_quantity(
         product_id,
         operation,
-        quantity
+        quantity,
+        remarks=None
     ):
-        product = Product.query.get(
-            product_id
-        )
+        product = Product.query.get(product_id)
 
         if not product:
             raise ValueError(
                 "Product not found."
             )
 
-        if quantity <= 0:
+        try:
+            quantity = int(quantity)
+        except (TypeError, ValueError):
             raise ValueError(
-                "Quantity must be greater than zero."
+                "Quantity must be a number."
             )
 
-        if operation == "add":
-            product.quantity += quantity
+        if quantity <= 0:
+            raise ValueError(
+                "Quantity must be greater than 0."
+            )
 
-        elif operation == "remove":
+        previous_stock = product.quantity
+
+        if operation == "increase":
+            product.quantity += quantity
+            transaction_type = "STOCK_IN"
+
+        elif operation == "decrease":
 
             if quantity > product.quantity:
                 raise ValueError(
@@ -239,17 +250,40 @@ class ProductService:
                 )
 
             product.quantity -= quantity
+            transaction_type = "STOCK_OUT"
 
         else:
             raise ValueError(
                 "Invalid operation."
             )
 
+        # Keep total amount in sync
         product.total_amount = (
             product.price *
             product.quantity
         )
 
-        db.session.commit()
+        transaction = StockTransaction(
+            product_id=product.id,
+            user_id=current_user.id,
+            transaction_type=transaction_type,
+            quantity=quantity,
+            previous_stock=previous_stock,
+            new_stock=product.quantity,
+            remarks=remarks,
+            reference_no=
+                f"TXN-{uuid4().hex[:8].upper()}"
+        )
 
-        return product
+        try:
+            db.session.add(transaction)
+            db.session.commit()
+
+            return {
+                "product": product,
+                "transaction": transaction
+            }
+
+        except Exception:
+            db.session.rollback()
+            raise

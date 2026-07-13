@@ -5,12 +5,27 @@ import Link from "next/link";
 
 import { useDashboard } from "@/hooks/useDashboard";
 import { usePermissions } from "@/hooks/usePermissions";
+import { useMyTransactions, useStockTransactions } from "@/hooks/useStockTransactions";
 import StatCard from "@/components/dashboard/StatCard";
+import RecentTransactionsCard from "@/components/dashboard/RecentTransactionsCard";
 import Spinner from "@/components/ui/Spinner";
 
 export default function DashboardPageContent() {
   const { data, isLoading } = useDashboard();
-  const { prefix } = usePermissions();
+  const { prefix, hasPermission } = usePermissions();
+
+  const canViewAllTransactions = hasPermission("can_view_stock_transactions");
+  const canViewOwnTransactions = !canViewAllTransactions && hasPermission("can_update_stock");
+
+  const { data: allTransactions } = useStockTransactions(
+    { limit: 5 },
+    canViewAllTransactions
+  );
+
+  const { data: myTransactions } = useMyTransactions(
+    { limit: 5 },
+    canViewOwnTransactions
+  );
 
   if (isLoading) {
     return (
@@ -48,6 +63,20 @@ export default function DashboardPageContent() {
           />
         </Link>
       </div>
+
+      {canViewAllTransactions && (
+        <RecentTransactionsCard
+          items={allTransactions?.items ?? []}
+          viewAllHref={`${prefix}/stock-transactions`}
+        />
+      )}
+
+      {canViewOwnTransactions && (
+        <RecentTransactionsCard
+          items={myTransactions?.items ?? []}
+          viewAllHref={`${prefix}/my-transactions`}
+        />
+      )}
     </div>
   );
 }

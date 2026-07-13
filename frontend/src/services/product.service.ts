@@ -23,6 +23,8 @@ export const ProductService = {
   deleteProduct: (id: number) =>
     api.delete<ApiResponse<null>>(`/products/${id}`),
 
-  updateQuantity: (id: number, data: { operation: "add" | "remove"; quantity: number }) =>
-    api.patch<ApiResponse<Product>, typeof data>(`/products/${id}/quantity`, data),
+  updateQuantity: (
+    id: number,
+    data: { operation: "increase" | "decrease"; quantity: number; remarks?: string }
+  ) => api.patch<ApiResponse<Product>, typeof data>(`/products/${id}/quantity`, data),
 };

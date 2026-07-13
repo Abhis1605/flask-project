@@ -66,7 +66,7 @@ export function useUpdateProductQuantity() {
       data,
     }: {
       id: number;
-      data: { operation: "add" | "remove"; quantity: number };
+      data: { operation: "increase" | "decrease"; quantity: number; remarks?: string };
     }) => ProductService.updateQuantity(id, data),
 
     onSuccess: () => {

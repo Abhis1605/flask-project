@@ -1,0 +1,62 @@
+# app/services/stock_transaction_service.py
+
+from uuid import uuid4
+
+from app.extensions import db
+from app.models.stock_transaction import StockTransaction
+
+
+class StockTransactionService:
+
+    @staticmethod
+    def update_stock(
+        *,
+        product,
+        user,
+        transaction_type,
+        quantity,
+        remarks=None
+    ):
+        previous_stock = product.quantity
+
+        if transaction_type == "STOCK_IN":
+            new_stock = previous_stock + quantity
+
+        elif transaction_type == "STOCK_OUT":
+            if quantity > previous_stock:
+                raise ValueError(
+                    "Insufficient stock available."
+                )
+
+            new_stock = previous_stock - quantity
+
+        elif transaction_type == "ADJUSTMENT":
+            new_stock = quantity
+
+        else:
+            raise ValueError(
+                "Invalid transaction type."
+            )
+
+        product.quantity = new_stock
+
+        transaction = StockTransaction(
+            product_id=product.id,
+            user_id=user.id,
+            transaction_type=transaction_type,
+            quantity=quantity,
+            previous_stock=previous_stock,
+            new_stock=new_stock,
+            remarks=remarks,
+            reference_no=f"TXN-{uuid4().hex[:8].upper()}"
+        )
+
+        try:
+            db.session.add(transaction)
+            db.session.commit()
+
+            return transaction
+
+        except Exception:
+            db.session.rollback()
+            raise

@@ -193,47 +193,100 @@ def get_categories():
         ],
         message="Categories fetched successfully."
     )
-
+    
 @product_bp.route(
     "/<int:product_id>/quantity",
     methods=["PATCH"]
 )
-@jwt_required()
-@require_permission(
-    "can_update_stock"
-)
-def update_quantity(
-    product_id
-):
-    data = request.get_json()
+@jwt_required(locations=["headers"])
+@require_permission("can_update_stock")
+def update_quantity(product_id):
+    """
+    PATCH /api/v1/products/<product_id>/quantity
 
-    operation = data.get(
-        "operation"
+    Body:
+    {
+        "operation": "increase",
+        "quantity": 10,
+        "remarks": "New shipment"
+    }
+
+    or
+
+    {
+        "operation": "decrease",
+        "quantity": 5,
+        "remarks": "Sold items"
+    }
+    """
+
+    data = request.get_json() or {}
+
+    operation = (
+        data.get("operation", "")
+        .strip()
+        .lower()
     )
 
-    quantity = data.get(
-        "quantity"
-    )
+    quantity = data.get("quantity")
+    remarks = data.get("remarks")
+
+    if operation not in (
+        "increase",
+        "decrease"
+    ):
+        return error_response(
+            message=(
+                "Operation must be "
+                "'increase' or 'decrease'."
+            ),
+            status_code=400
+        )
+
+    if quantity is None:
+        return error_response(
+            message="Quantity is required.",
+            status_code=400
+        )
 
     try:
-        product = (
-            ProductService
-            .update_quantity(
-                product_id,
-                operation,
-                quantity
-            )
+        quantity = int(quantity)
+    except (ValueError, TypeError):
+        return error_response(
+            message="Quantity must be a number.",
+            status_code=400
+        )
+
+    if quantity <= 0:
+        return error_response(
+            message=(
+                "Quantity must be "
+                "greater than 0."
+            ),
+            status_code=400
+        )
+
+    try:
+        result = ProductService.update_quantity(
+            product_id=product_id,
+            operation=operation,
+            quantity=quantity,
+            remarks=remarks
         )
 
         return success_response(
-            data=product.to_dict(),
-            message=
-            "Stock updated successfully."
+            data=result["product"].to_dict(),
+            message="Stock updated successfully."
         )
 
     except ValueError as e:
-
         return error_response(
             message=str(e),
             status_code=400
+        )
+
+    except Exception:
+        return error_response(
+            message="Something went wrong.",
+            status_code=500
         )

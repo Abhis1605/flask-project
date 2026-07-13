@@ -21,14 +21,14 @@ export default function StockUpdateModal({
   onClose,
   product,
 }: StockUpdateModalProps) {
-  const [operation, setOperation] = useState<"add" | "remove">("add");
+  const [operation, setOperation] = useState<"increase" | "decrease">("increase");
   const [quantity, setQuantity] = useState("");
 
   const updateQuantity = useUpdateProductQuantity();
 
   useEffect(() => {
     if (open) {
-      setOperation("add");
+      setOperation("increase");
       setQuantity("");
     }
   }, [open]);
@@ -59,10 +59,10 @@ export default function StockUpdateModal({
           <Label>Operation</Label>
           <Select
             value={operation}
-            onChange={(e) => setOperation(e.target.value as "add" | "remove")}
+            onChange={(e) => setOperation(e.target.value as "increase" | "decrease")}
           >
-            <option value="add">Add stock</option>
-            <option value="remove">Remove stock</option>
+            <option value="increase">Add stock</option>
+            <option value="decrease">Remove stock</option>
           </Select>
         </div>
 

@@ -1,4 +1,4 @@
-import { LayoutDashboard, Package, Tags, Users } from "lucide-react";
+import { History, LayoutDashboard, Package, Tags, Users } from "lucide-react";
 
 import type { Permissions } from "@/types/auth";
 
@@ -17,6 +17,11 @@ export function getNavItems(prefix: string, permissions: Permissions): NavItem[]
     permissions.can_view_categories
       ? { label: "Categories", href: `${prefix}/categories`, icon: Tags }
       : null,
+    permissions.can_view_stock_transactions
+      ? { label: "Stock Transactions", href: `${prefix}/stock-transactions`, icon: History }
+      : permissions.can_update_stock
+        ? { label: "My Transactions", href: `${prefix}/my-transactions`, icon: History }
+        : null,
     permissions.can_manage_users
       ? { label: "Users", href: `${prefix}/users`, icon: Users }
       : null,

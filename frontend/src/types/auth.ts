@@ -15,6 +15,8 @@ export interface Permissions {
   can_delete_category: boolean;
   can_view_stock: boolean;
   can_update_stock: boolean;
+  can_view_stock_transactions: boolean;
+  can_adjust_stock: boolean;
   can_manage_users: boolean;
 }
 
