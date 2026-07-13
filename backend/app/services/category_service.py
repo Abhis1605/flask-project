@@ -1,5 +1,8 @@
+from flask_jwt_extended import current_user
+
 from app.extensions import db
 from app.models import Category
+from app.services.activity_log_service import ActivityLogService
 
 
 class CategoryService:
@@ -42,6 +45,17 @@ class CategoryService:
             )
 
             db.session.add(category)
+            
+            db.session.flush()
+            
+            ActivityLogService.log(
+            user_id=current_user.id,
+            action="CREATE",
+            entity_type="CATEGORY",
+            entity_id=category.id,
+            description=
+                f"Created category '{category.name}'"
+        )
 
             db.session.commit()
 
@@ -81,6 +95,15 @@ class CategoryService:
         try:
 
             category.name = name
+            
+            ActivityLogService.log(
+            user_id=current_user.id,
+            action="UPDATE",
+            entity_type="CATEGORY",
+            entity_id=category.id,
+            description=
+                f"Updated category '{category.name}'"
+        )
 
             db.session.commit()
 
@@ -101,6 +124,15 @@ class CategoryService:
             return None
 
         try:
+            
+            ActivityLogService.log(
+            user_id=current_user.id,
+            action="DELETE",
+            entity_type="CATEGORY",
+            entity_id=category.id,
+            description=
+                f"Deleted category '{category.name}'"
+        )
 
             db.session.delete(category)
 

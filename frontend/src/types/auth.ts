@@ -18,6 +18,7 @@ export interface Permissions {
   can_view_stock_transactions: boolean;
   can_adjust_stock: boolean;
   can_manage_users: boolean;
+  can_view_activity_logs: boolean;
 }
 
 export interface User {

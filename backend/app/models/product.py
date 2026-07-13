@@ -32,7 +32,7 @@ class Product(db.Model):
     sku = db.Column(
         db.String(50),
         unique=True,
-        nullable=False
+        nullable=True
     )
 
     low_stock_threshold = db.Column(

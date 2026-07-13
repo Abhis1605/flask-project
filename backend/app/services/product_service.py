@@ -4,7 +4,7 @@ from flask_jwt_extended import current_user
 
 from app.extensions import db
 from app.models import Product, Category, StockTransaction
-
+from app.services.activity_log_service import ActivityLogService
 
 class ProductService:
 
@@ -121,6 +121,16 @@ class ProductService:
             )
 
             db.session.add(product)
+            
+            db.session.flush()
+            
+            ActivityLogService.log(
+                user_id=current_user.id,
+                action="CREATE",
+                entity_type="PRODUCT",
+                entity_id=product.id,
+                description=f"Created product '{product.name}'"
+            )
 
             db.session.commit()
 
@@ -177,6 +187,14 @@ class ProductService:
             product.quantity = quantity
             product.category_id = category_id
             product.total_amount = price * quantity
+            
+            ActivityLogService.log(
+                user_id=current_user.id,
+                action="UPDATE",
+                entity_type="PRODUCT",
+                entity_id=product.id,
+                description=f"Updated product '{product.name}'"
+            )
 
             db.session.commit()
 
@@ -198,6 +216,14 @@ class ProductService:
 
         try:
 
+            ActivityLogService.log(
+                user_id=current_user.id,
+                action="DELETE",
+                entity_type="PRODUCT",
+                entity_id=product.id,
+                description=f"Deleted product '{product.name}'"
+            )
+            
             db.session.delete(product)
 
             db.session.commit()
@@ -273,6 +299,17 @@ class ProductService:
             remarks=remarks,
             reference_no=
                 f"TXN-{uuid4().hex[:8].upper()}"
+        )
+        
+        ActivityLogService.log(
+        user_id=current_user.id,
+        action=transaction_type,
+        entity_type="PRODUCT",
+        entity_id=product.id,
+        description=
+            f"{transaction_type} "
+            f"{quantity} units of "
+            f"'{product.name}'"
         )
 
         try:

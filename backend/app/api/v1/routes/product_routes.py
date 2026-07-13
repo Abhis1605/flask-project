@@ -105,11 +105,13 @@ def create_product():
             status_code=201
         )
 
-    except ValueError as e:
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
 
         return error_response(
-            message=str(e),
-            status_code=400
+        message=str(e),
+        status_code=500
         )
 
     except Exception:

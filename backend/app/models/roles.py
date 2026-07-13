@@ -18,7 +18,8 @@ class Role(db.Model):
         "can_update_stock",
         "can_manage_users",
         "can_view_stock_transactions",
-        "can_adjust_stock"
+        "can_adjust_stock",
+        "can_view_activity_logs"
     )
 
     id = db.Column(
@@ -114,6 +115,12 @@ class Role(db.Model):
     )
     
     can_adjust_stock = db.Column(
+        db.Boolean,
+        default=False,
+        nullable=False
+    )
+    
+    can_view_activity_logs = db.Column(
         db.Boolean,
         default=False,
         nullable=False

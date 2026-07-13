@@ -16,6 +16,7 @@ const EMPTY_PERMISSIONS: Permissions = {
   can_view_stock_transactions: false,
   can_adjust_stock: false,
   can_manage_users: false,
+  can_view_activity_logs: false,
 };
 
 export function usePermissions() {
