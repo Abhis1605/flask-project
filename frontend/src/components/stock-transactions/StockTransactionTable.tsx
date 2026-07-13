@@ -3,14 +3,11 @@ import { History } from "lucide-react";
 import TransactionTypeBadge from "@/components/stock-transactions/TransactionTypeBadge";
 import { useMobile } from "@/hooks/useMobile";
 import type { StockTransaction } from "@/types/stock-transaction";
+import { formatIndianDateTime } from "@/utils/date";
 
 interface StockTransactionTableProps {
   transactions: StockTransaction[];
   showUser?: boolean;
-}
-
-function formatDate(value: string) {
-  return new Date(value).toLocaleString();
 }
 
 export default function StockTransactionTable({
@@ -74,14 +71,15 @@ export default function StockTransactionTable({
               <div>
                 <dt className="text-xs text-slate-400">Date</dt>
                 <dd className="font-medium text-slate-700 dark:text-slate-200">
-                  {formatDate(transaction.created_at)}
+                  {formatIndianDateTime(transaction.created_at)}
                 </dd>
               </div>
 
               {transaction.remarks && (
                 <div className="col-span-2">
                   <dt className="text-xs text-slate-400">Remarks</dt>
-                  <dd className="text-slate-700 dark:text-slate-200">{transaction.remarks}</dd>
+                  <dd className="text-slate-700 dark:text-slate-200">
+                    {transaction.remarks}</dd>
                 </div>
               )}
             </dl>
@@ -135,7 +133,7 @@ export default function StockTransactionTable({
               </td>
 
               <td className="whitespace-nowrap px-4 py-3">
-                {formatDate(transaction.created_at)}
+                {formatIndianDateTime(transaction.created_at)}
               </td>
             </tr>
           ))}

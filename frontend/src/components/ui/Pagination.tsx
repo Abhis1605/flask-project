@@ -47,7 +47,7 @@ export default function Pagination({
           <ChevronLeft className="h-4 w-4" />
         </button>
 
-        <span className="min-w-[5rem] text-center">
+        <span className="min-w-20 text-center">
           Page {page} of {Math.max(pages, 1)}
         </span>
 

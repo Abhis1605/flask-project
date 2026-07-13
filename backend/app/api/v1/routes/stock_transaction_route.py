@@ -1,4 +1,3 @@
-# app/routes/stock_transaction_routes.py
 
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import jwt_required, current_user
@@ -191,13 +190,6 @@ def get_product_transactions(product_id):
 )
 @jwt_required()
 def get_my_transactions():
-    """
-    GET /api/stock-transactions/me
-
-    Employees can view their own
-    stock updates.
-    """
-
     page = request.args.get(
         "page",
         1,
@@ -210,12 +202,37 @@ def get_my_transactions():
         type=int
     )
 
-    pagination = (
+    transaction_type = request.args.get(
+        "type"
+    )
+
+    product_id = request.args.get(
+        "product_id",
+        type=int
+    )
+
+    query = (
         StockTransaction.query
         .filter(
             StockTransaction.user_id
             == current_user.id
         )
+    )
+
+    if transaction_type:
+        query = query.filter(
+            StockTransaction.transaction_type
+            == transaction_type
+        )
+
+    if product_id:
+        query = query.filter(
+            StockTransaction.product_id
+            == product_id
+        )
+
+    pagination = (
+        query
         .order_by(
             StockTransaction.created_at.desc()
         )

@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from app.extensions import db
 
 class StockTransaction(db.Model):
@@ -79,5 +79,9 @@ class StockTransaction(db.Model):
         "previous_stock": self.previous_stock,
         "new_stock": self.new_stock,
         "remarks": self.remarks,
-        "created_at": self.created_at.isoformat(),
+        "created_at": (
+        self.created_at
+        .replace(tzinfo=timezone.utc)
+        .isoformat()
+)
     }
